@@ -442,15 +442,6 @@ const VideoProcessing = () => {
             <main className="container mx-auto px-4 py-6 lg:py-8">
               {/* Header */}
               <div className="text-center mb-8 lg:mb-12">
-                <div className="flex items-center justify-center gap-3 mb-6">
-                  <div className="p-3 rounded-2xl bg-gradient-to-r from-purple-500 to-pink-500 shadow-lg">
-                    <Video className="h-8 w-8 text-white" />
-                  </div>
-                  <Badge variant="outline" className="px-4 py-2 bg-white/50 backdrop-blur-sm border-purple-300 text-purple-700">
-                    <Sparkles className="h-4 w-4 mr-2" />
-                    Video Processing Models
-                  </Badge>
-                </div>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 via-pink-600 to-purple-600 bg-clip-text text-transparent">
                   Video Generation Studio
                 </h1>
