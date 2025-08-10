@@ -44,42 +44,8 @@ const traditionalModels: BaseModel[] = [
   },
 ];
 
-// Content generation presets with paths
-const videoContentPresets: BaseContentPreset[] = [
-  {
-    id: 'short-video',
-    title: 'Short Video',
-    description: 'Create engaging short-form videos with professional transitions and effects',
-    icon: Play,
-    color: 'from-blue-500 to-blue-600',
-    bgColor: 'bg-blue-50 dark:bg-blue-950/20',
-    estimatedTime: '5-15 minutes',
-    features: ['HD Quality', 'Transitions', 'Effects', 'Music Integration', 'Export Ready'],
-    path: "/short-video"
-  },
-  {
-    id: 'marketing-video',
-    title: 'Marketing Video',
-    description: 'Generate promotional videos with brand integration and call-to-action elements',
-    icon: Clapperboard,
-    color: 'from-purple-500 to-purple-600',
-    bgColor: 'bg-purple-50 dark:bg-purple-950/20',
-    estimatedTime: '10-25 minutes',
-    features: ['Brand Integration', 'CTA Elements', 'Professional Editing', 'Multiple Formats', 'Analytics Ready'],
-    path: "/marketing-video"
-  },
-  {
-    id: 'tutorial-video',
-    title: 'Tutorial Video',
-    description: 'Create educational content with screen recording and voice-over capabilities',
-    icon: MonitorPlay,
-    color: 'from-orange-500 to-orange-600',
-    bgColor: 'bg-orange-50 dark:bg-orange-950/20',
-    estimatedTime: '15-30 minutes',
-    features: ['Screen Recording', 'Voice-over', 'Annotations', 'Chapter Markers', 'Interactive Elements'],
-    path: "/tutorial-video"
-  }
-];
+// Content generation presets with paths (empty for video processing focus)
+const videoContentPresets: BaseContentPreset[] = [];
 
 const mockProjects: BaseProject[] = [
   {
