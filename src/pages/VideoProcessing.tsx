@@ -15,7 +15,7 @@ import { ModelSelectionInterface } from "@/components/ai-studio/ModelSelectionIn
 import { ModelPage } from "@/components/ai-studio/ModelPage";
 import { ModelModal } from "@/components/ModelModal";
 
-import VideoGeneration from "@/components/video-processing/video-generation";
+import VideoGenerationEnhanced from "@/components/video-processing/VideoGenerationEnhanced";
 
 export interface VideoProcessingState {
   prompt: string;
