@@ -390,11 +390,11 @@ const VideoProcessing = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50/30 via-background to-pink-50/30">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="flex h-[calc(100vh-64px)] relative">
         {/* Desktop Sidebar */}
-        <div className="w-80 border-r border-purple-200/50 hidden lg:block">
+        <div className="w-80 border-r bg-card/30 backdrop-blur-sm hidden lg:block h-full overflow-hidden">
           <ProjectHistorySidebar />
         </div>
 
