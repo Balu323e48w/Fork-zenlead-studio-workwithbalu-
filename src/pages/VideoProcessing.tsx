@@ -144,7 +144,7 @@ const VideoProcessing = () => {
   const renderModelContent = (modelKey: string) => {
     switch (modelKey) {
       case "video-generation":
-        return <VideoGeneration state={state} isLocked={lockedTabs["video-generation"]} />;
+        return <VideoGenerationEnhanced />;
       default:
         return null;
     }
