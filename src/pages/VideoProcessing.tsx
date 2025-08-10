@@ -411,10 +411,10 @@ const VideoProcessing = () => {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Mobile Header */}
-          <div className="lg:hidden border-b border-purple-200/50 bg-gradient-to-r from-purple-50/50 to-pink-50/50 backdrop-blur-sm p-4 flex items-center justify-between">
+          <div className="lg:hidden border-b bg-card/50 backdrop-blur-sm p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
                 onClick={() => setIsMobileSidebarOpen(true)}
                 className="lg:hidden"
@@ -422,15 +422,15 @@ const VideoProcessing = () => {
                 <Menu className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="font-semibold text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Video Studio</h1>
-                <p className="text-xs text-muted-foreground">AI Video Generation</p>
+                <h1 className="font-semibold text-lg">AI Studio</h1>
+                <p className="text-xs text-muted-foreground">Video Processing</p>
               </div>
             </div>
             <Button
               onClick={() => setActiveTab(null)}
               size="sm"
               variant="outline"
-              className="gap-2 border-purple-300 text-purple-600 hover:bg-purple-50"
+              className="gap-2"
             >
               <Plus className="h-4 w-4" />
               New
