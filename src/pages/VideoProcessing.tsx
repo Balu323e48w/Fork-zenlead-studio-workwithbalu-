@@ -360,8 +360,8 @@ const VideoProcessing = () => {
                           <Badge className={`text-xs ${getStatusColor(project.status)}`}>
                             {project.status}
                           </Badge>
-                          <Badge variant="outline" className="text-xs border-purple-300 text-purple-600">
-                            {project.resolution}
+                          <Badge variant="outline" className="text-xs">
+                            Video
                           </Badge>
                           <Badge variant="outline" className="text-xs">
                             {project.duration}
