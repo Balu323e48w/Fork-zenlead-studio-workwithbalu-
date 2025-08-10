@@ -452,52 +452,24 @@ const TextProcessing = () => {
         />
 
         {/* Content generation routes */}
-        <Route 
-          path="/book" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Book Generation</h2>
-                <p className="text-muted-foreground">Book generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
+        <Route
+          path="/book"
+          element={<BookGeneration />}
         />
-        
-        <Route 
-          path="/research" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Research Paper</h2>
-                <p className="text-muted-foreground">Research paper generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
+
+        <Route
+          path="/research"
+          element={<ResearchGeneration />}
         />
-        
-        <Route 
-          path="/course" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Course Material</h2>
-                <p className="text-muted-foreground">Course material generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
+
+        <Route
+          path="/course"
+          element={<CourseGeneration />}
         />
-        
-        <Route 
-          path="/letter" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Professional Letter</h2>
-                <p className="text-muted-foreground">Letter generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
+
+        <Route
+          path="/letter"
+          element={<LetterGeneration />}
         />
       </Routes>
 
