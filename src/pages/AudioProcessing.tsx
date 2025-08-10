@@ -270,42 +270,6 @@ const AudioProcessing = () => {
           } 
         />
 
-        {/* Content generation routes */}
-        <Route 
-          path="/podcast" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Podcast Generation</h2>
-                <p className="text-muted-foreground">Podcast generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
-        />
-        
-        <Route 
-          path="/music" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Music Generation</h2>
-                <p className="text-muted-foreground">Music generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
-        />
-        
-        <Route 
-          path="/voiceover" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Voiceover Generation</h2>
-                <p className="text-muted-foreground">Voiceover generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
-        />
       </Routes>
 
       {/* Enhanced Modal for Traditional Tools */}
