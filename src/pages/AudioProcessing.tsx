@@ -82,42 +82,8 @@ const traditionalModels: BaseModel[] = [
   },
 ];
 
-// Content generation presets with paths
-const audioContentPresets: BaseContentPreset[] = [
-  {
-    id: 'podcast',
-    title: 'Podcast Episode',
-    description: 'Create engaging podcast episodes with intro music, chapters, and professional editing',
-    icon: Mic,
-    color: 'from-blue-500 to-blue-600',
-    bgColor: 'bg-blue-50 dark:bg-blue-950/20',
-    estimatedTime: '20-45 minutes',
-    features: ['Intro/Outro Music', 'Chapter Markers', 'Noise Reduction', 'Auto-leveling', 'Show Notes'],
-    path: "/podcast"
-  },
-  {
-    id: 'music',
-    title: 'Music Track',
-    description: 'Generate original music tracks with AI composition and professional mixing',
-    icon: AudioWaveform,
-    color: 'from-purple-500 to-purple-600',
-    bgColor: 'bg-purple-50 dark:bg-purple-950/20',
-    estimatedTime: '10-25 minutes',
-    features: ['AI Composition', 'Genre Styling', 'Professional Mixing', 'Multiple Instruments', 'Mastering'],
-    path: "/music"
-  },
-  {
-    id: 'voiceover',
-    title: 'Professional Voiceover',
-    description: 'Create professional voiceovers with natural AI voices and script optimization',
-    icon: Volume2,
-    color: 'from-orange-500 to-orange-600',
-    bgColor: 'bg-orange-50 dark:bg-orange-950/20',
-    estimatedTime: '5-15 minutes',
-    features: ['AI Voice Selection', 'Script Optimization', 'Emotion Control', 'Background Music', 'Export Ready'],
-    path: "/voiceover"
-  }
-];
+// Content generation presets with paths (removed for audio processing focus)
+const audioContentPresets: BaseContentPreset[] = [];
 
 const mockProjects: BaseProject[] = [
   {
