@@ -300,7 +300,7 @@ const VideoProcessing = () => {
   const ProjectHistorySidebar = ({ onClose }: { onClose?: () => void }) => (
     <div className="h-[calc(100vh-64px)] flex flex-col">
       {/* Sidebar Header */}
-      <div className="p-4 lg:p-6 border-b border-purple-200/30 dark:border-purple-800/30 flex-shrink-0">
+      <div className="p-4 lg:p-6 border-b flex-shrink-0">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500">
             <Film className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
