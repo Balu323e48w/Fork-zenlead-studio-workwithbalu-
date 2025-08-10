@@ -27,6 +27,12 @@ import Summarize from "@/components/text-processing/summarize";
 import AtsScore from "@/components/text-processing/ats-score";
 import ResumeAnalyser from "@/components/text-processing/resume-analyser";
 
+// Import content generation components
+import BookGeneration from "@/components/text-processing/BookGeneration";
+import CourseGeneration from "@/components/text-processing/CourseGeneration";
+import ResearchGeneration from "@/components/text-processing/ResearchGeneration";
+import LetterGeneration from "@/components/text-processing/LetterGeneration";
+
 // Existing state interface
 export interface TextProcessingState {
   text: string;
