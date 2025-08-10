@@ -299,7 +299,7 @@ export const AIStudioBase = ({
           </div>
 
           {/* Main Content */}
-          <div className="flex-1">
+          <div className="flex-1 overflow-y-auto h-[calc(100vh-64px)]">
             {children}
           </div>
         </div>
