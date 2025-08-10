@@ -339,7 +339,7 @@ const VideoProcessing = () => {
           </div>
         </div>
         
-        <ScrollArea className="flex-1 px-3 lg:px-4">
+        <ScrollArea className="h-full px-3 lg:px-4">
           <div className="space-y-3 pb-4">
             {filteredProjects.map((project) => (
               <Card
