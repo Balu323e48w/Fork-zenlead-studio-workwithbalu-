@@ -370,12 +370,6 @@ const VideoProcessing = () => {
                       </div>
                       <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                         <span>{formatTimestamp(project.timestamp)}</span>
-                        {project.status === 'completed' && (
-                          <span className="flex items-center gap-1">
-                            <MonitorPlay className="h-3 w-3" />
-                            {project.views}
-                          </span>
-                        )}
                       </div>
                     </div>
                   </div>
