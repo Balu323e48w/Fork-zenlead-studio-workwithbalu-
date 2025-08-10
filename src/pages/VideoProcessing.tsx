@@ -61,31 +61,9 @@ const mockProjects: BaseProject[] = [
   },
   {
     id: '2',
-    title: 'Product Launch Video',
-    type: 'marketing-video',
-    timestamp: '2024-01-14T14:20:00Z',
-    status: 'completed',
-    model: 'MarketingPro',
-    preview: 'Professional product launch video with brand integration and call-to-action...',
-    category: 'content-generation',
-    metadata: { duration: '0:45' }
-  },
-  {
-    id: '3',
-    title: 'React Tutorial Series',
-    type: 'tutorial-video',
-    timestamp: '2024-01-13T09:15:00Z',
-    status: 'processing',
-    model: 'TutorialBuilder',
-    preview: 'Comprehensive React development tutorial with screen recording and annotations...',
-    category: 'content-generation',
-    metadata: { duration: '12:30' }
-  },
-  {
-    id: '4',
     title: 'City Night Timelapse',
     type: 'video-generation',
-    timestamp: '2024-01-12T16:30:00Z',
+    timestamp: '2024-01-14T14:20:00Z',
     status: 'completed',
     model: 'VideoGenix Pro',
     preview: 'Bustling city street at night with neon lights and traffic flow...',
@@ -93,15 +71,26 @@ const mockProjects: BaseProject[] = [
     metadata: { duration: '0:20' }
   },
   {
-    id: '5',
-    title: 'Brand Story Video',
-    type: 'short-video',
-    timestamp: '2024-01-11T11:45:00Z',
-    status: 'completed',
-    model: 'ShortForm',
-    preview: 'Engaging brand story with professional transitions and background music...',
-    category: 'content-generation',
+    id: '3',
+    title: 'Mountain Landscape',
+    type: 'video-generation',
+    timestamp: '2024-01-13T09:15:00Z',
+    status: 'processing',
+    model: 'VideoGenix Pro',
+    preview: 'Majestic mountain range with flowing clouds and golden hour lighting...',
+    category: 'traditional',
     metadata: { duration: '0:30' }
+  },
+  {
+    id: '4',
+    title: 'Abstract Art Animation',
+    type: 'video-generation',
+    timestamp: '2024-01-12T16:30:00Z',
+    status: 'completed',
+    model: 'VideoGenix Pro',
+    preview: 'Colorful abstract shapes morphing and flowing in dynamic patterns...',
+    category: 'traditional',
+    metadata: { duration: '0:25' }
   }
 ];
 
