@@ -197,42 +197,6 @@ const VideoProcessing = () => {
           } 
         />
 
-        {/* Content generation routes */}
-        <Route 
-          path="/short-video" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Short Video Generation</h2>
-                <p className="text-muted-foreground">Short video generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
-        />
-        
-        <Route 
-          path="/marketing-video" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Marketing Video</h2>
-                <p className="text-muted-foreground">Marketing video generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
-        />
-        
-        <Route 
-          path="/tutorial-video" 
-          element={
-            <div className="flex-1 p-4 lg:p-8">
-              <div className="text-center">
-                <h2 className="text-2xl font-bold mb-4">Tutorial Video</h2>
-                <p className="text-muted-foreground">Tutorial video generation interface coming soon...</p>
-              </div>
-            </div>
-          } 
-        />
       </Routes>
 
       {/* Enhanced Modal for Traditional Tools */}
