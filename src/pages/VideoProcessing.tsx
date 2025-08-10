@@ -318,7 +318,7 @@ const VideoProcessing = () => {
       </div>
 
       {/* Search */}
-      <div className="p-3 lg:p-4 border-b border-purple-200/30 dark:border-purple-800/30 flex-shrink-0">
+      <div className="p-3 lg:p-4 border-b space-y-3 flex-shrink-0">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
