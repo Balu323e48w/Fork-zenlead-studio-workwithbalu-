@@ -88,20 +88,9 @@ const audioContentPresets: BaseContentPreset[] = [];
 const mockProjects: BaseProject[] = [
   {
     id: '1',
-    title: 'Marketing Podcast Episode',
-    type: 'podcast',
-    timestamp: '2024-01-15T10:30:00Z',
-    status: 'completed',
-    model: 'PodcastPro',
-    preview: 'Weekly marketing insights podcast with intro music and chapter markers...',
-    category: 'content-generation',
-    metadata: { duration: '32:45' }
-  },
-  {
-    id: '2',
     title: 'French Audio Translation',
     type: 'translate',
-    timestamp: '2024-01-14T14:20:00Z',
+    timestamp: '2024-01-15T10:30:00Z',
     status: 'completed',
     model: 'AudioTrans',
     preview: 'Translated product demo from English to French preserving speaker tone...',
@@ -109,10 +98,10 @@ const mockProjects: BaseProject[] = [
     metadata: { duration: '8:30' }
   },
   {
-    id: '3',
+    id: '2',
     title: 'CEO Voice Clone',
     type: 'clone',
-    timestamp: '2024-01-13T09:15:00Z',
+    timestamp: '2024-01-14T14:20:00Z',
     status: 'completed',
     model: 'VoiceReplicator',
     preview: 'Created AI voice clone for automated company announcements...',
@@ -120,25 +109,26 @@ const mockProjects: BaseProject[] = [
     metadata: { duration: '5:20' }
   },
   {
-    id: '4',
-    title: 'Background Music Track',
-    type: 'music',
-    timestamp: '2024-01-13T09:15:00Z',
-    status: 'processing',
-    model: 'MusicAI',
-    preview: 'Upbeat electronic track for product video background...',
-    category: 'content-generation'
-  },
-  {
-    id: '5',
+    id: '3',
     title: 'Interview Audio Enhancement',
     type: 'enhance',
-    timestamp: '2024-01-12T16:30:00Z',
+    timestamp: '2024-01-13T09:15:00Z',
     status: 'completed',
     model: 'AudioClear',
     preview: 'Enhanced remote interview recording with noise reduction and clarity...',
     category: 'traditional',
     metadata: { duration: '45:12' }
+  },
+  {
+    id: '4',
+    title: 'Spanish Voice Translation',
+    type: 'translate',
+    timestamp: '2024-01-12T16:30:00Z',
+    status: 'processing',
+    model: 'AudioTrans',
+    preview: 'Converting English presentation to Spanish with original voice characteristics...',
+    category: 'traditional',
+    metadata: { duration: '12:15' }
   }
 ];
 
