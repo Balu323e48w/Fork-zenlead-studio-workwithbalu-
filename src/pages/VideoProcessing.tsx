@@ -438,7 +438,7 @@ const VideoProcessing = () => {
           </div>
 
           {/* Main Content */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto h-[calc(100vh-64px)]">
             <main className="container mx-auto px-4 py-6 lg:py-8">
               {/* Header */}
               <div className="text-center mb-8 lg:mb-12">
