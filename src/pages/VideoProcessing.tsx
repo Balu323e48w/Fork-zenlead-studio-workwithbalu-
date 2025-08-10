@@ -325,7 +325,7 @@ const VideoProcessing = () => {
             placeholder="Search videos..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 text-sm border-purple-200/50 focus:border-purple-400"
+            className="pl-9 text-sm"
           />
         </div>
       </div>
