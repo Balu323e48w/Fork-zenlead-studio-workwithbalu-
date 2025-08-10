@@ -185,16 +185,9 @@ const VideoProcessing = () => {
         />
         
         {/* Traditional model routes */}
-        <Route 
-          path="/video-generation" 
-          element={
-            <ModelPage 
-              model={traditionalModels.find(m => m.key === "video-generation")!}
-              backPath="/video"
-            >
-              {renderModelContent("video-generation")}
-            </ModelPage>
-          } 
+        <Route
+          path="/video-generation"
+          element={<VideoGenerationEnhanced />}
         />
 
       </Routes>
