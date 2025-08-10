@@ -96,9 +96,6 @@ const mockProjects: BaseProject[] = [
 
 const filterTypes = [
   { value: "video-generation", label: "Generation" },
-  { value: "short-video", label: "Short Form" },
-  { value: "marketing-video", label: "Marketing" },
-  { value: "tutorial-video", label: "Tutorial" },
 ];
 
 const VideoProcessing = () => {
