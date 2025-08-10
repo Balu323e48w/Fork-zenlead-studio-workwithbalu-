@@ -334,8 +334,8 @@ const VideoProcessing = () => {
       <div className="flex-1 min-h-0">
         <div className="p-3 lg:p-4 pb-2 flex-shrink-0">
           <div className="flex items-center gap-2">
-            <History className="h-4 w-4 text-purple-500" />
-            <h3 className="font-medium text-sm text-purple-700 dark:text-purple-300">Recent Videos</h3>
+            <History className="h-4 w-4 text-muted-foreground" />
+            <h3 className="font-medium text-sm">Recent Projects</h3>
           </div>
         </div>
         
