@@ -136,9 +136,6 @@ const filterTypes = [
   { value: "translate", label: "Translation" },
   { value: "clone", label: "Voice Clone" },
   { value: "enhance", label: "Enhancement" },
-  { value: "podcast", label: "Podcast" },
-  { value: "music", label: "Music" },
-  { value: "voiceover", label: "Voiceover" },
 ];
 
 const AudioProcessing = () => {
