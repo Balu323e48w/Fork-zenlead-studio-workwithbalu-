@@ -400,9 +400,9 @@ const VideoProcessing = () => {
 
         {/* Mobile Sidebar */}
         <Sheet open={isMobileSidebarOpen} onOpenChange={setIsMobileSidebarOpen}>
-          <SheetContent side="left" className="w-full sm:w-80 p-0">
+          <SheetContent side="left" className="w-full sm:w-80 p-0 h-full overflow-hidden">
             <SheetHeader className="sr-only">
-              <SheetTitle>Video Projects</SheetTitle>
+              <SheetTitle>Project History</SheetTitle>
             </SheetHeader>
             <ProjectHistorySidebar onClose={() => setIsMobileSidebarOpen(false)} />
           </SheetContent>
