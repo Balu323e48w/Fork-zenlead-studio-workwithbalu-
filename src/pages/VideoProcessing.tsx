@@ -349,8 +349,8 @@ const VideoProcessing = () => {
               >
                 <CardContent className="p-3 lg:p-4">
                   <div className="flex items-start gap-3">
-                    <div className="w-12 h-8 bg-gradient-to-br from-purple-400 to-pink-400 rounded-lg flex items-center justify-center text-white text-lg flex-shrink-0">
-                      {project.thumbnail}
+                    <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white flex-shrink-0">
+                      <Video className="h-3 w-3 lg:h-4 lg:w-4" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-medium text-xs lg:text-sm truncate mb-1">{project.title}</h4>
