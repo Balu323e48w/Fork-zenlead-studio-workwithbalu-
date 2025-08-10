@@ -302,12 +302,12 @@ const VideoProcessing = () => {
       {/* Sidebar Header */}
       <div className="p-4 lg:p-6 border-b flex-shrink-0">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500">
-            <Film className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
+          <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-primary/80">
+            <Film className="h-4 w-4 lg:h-5 lg:w-5 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="font-semibold text-base lg:text-lg bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">Video Studio</h2>
-            <p className="text-xs lg:text-sm text-muted-foreground">Recent Creations</p>
+            <h2 className="font-semibold text-base lg:text-lg">AI Studio</h2>
+            <p className="text-xs lg:text-sm text-muted-foreground">Video Processing</p>
           </div>
         </div>
         
