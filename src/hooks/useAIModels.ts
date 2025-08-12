@@ -181,6 +181,10 @@ export const useAIModels = (category?: string) => {
             .filter(model => contentGenerationSlugs.includes(model.slug))
             .map((model, index) => convertToBaseContentPreset(model, index));
 
+          console.log('📚 Traditional models:', traditionalModels.length);
+          console.log('🎨 Content models:', contentModels.length);
+          console.log('📝 Content models details:', contentModels);
+
           setModels(traditionalModels);
           setContentPresets(contentModels);
 
