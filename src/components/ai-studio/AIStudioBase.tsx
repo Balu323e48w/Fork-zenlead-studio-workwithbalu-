@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { NewProjectModal } from "@/components/NewProjectModal";
+import { ProjectListSkeleton } from "@/components/ModelCardSkeleton";
 import {
   Plus,
   History,
