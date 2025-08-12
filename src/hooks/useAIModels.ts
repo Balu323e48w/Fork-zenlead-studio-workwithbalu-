@@ -164,13 +164,18 @@ export const useAIModels = (category?: string) => {
         if (response.success && response.data.models) {
           const apiModels = response.data.models;
 
+          // Define content generation model slugs
+          const contentGenerationSlugs = [
+            'long-form-book', 'research-paper', 'course-material', 'professional-letter'
+          ];
+
           // Separate traditional models from content generation
           const traditionalModels = apiModels
-            .filter(model => model.category !== 'content')
+            .filter(model => !contentGenerationSlugs.includes(model.slug))
             .map((model, index) => convertToBaseModel(model, index));
 
           const contentModels = apiModels
-            .filter(model => model.category === 'content')
+            .filter(model => contentGenerationSlugs.includes(model.slug))
             .map((model, index) => convertToBaseContentPreset(model, index));
 
           setModels(traditionalModels);
