@@ -20,7 +20,8 @@ export const ModelSelectionInterface = ({
   subtitle,
   traditionalModels,
   contentPresets,
-  basePath
+  basePath,
+  loading = false
 }: ModelSelectionInterfaceProps) => {
   const navigate = useNavigate();
 
