@@ -159,15 +159,15 @@ export const useAIModels = (category?: string) => {
 
         // Fetch models for the specific category
         const response = await apiService.getModelsByCategory(category || '');
-        
+
         if (response.success && response.data.models) {
           const apiModels = response.data.models;
-          
+
           // Separate traditional models from content generation
           const traditionalModels = apiModels
             .filter(model => model.category !== 'content')
             .map((model, index) => convertToBaseModel(model, index));
-          
+
           const contentModels = apiModels
             .filter(model => model.category === 'content')
             .map((model, index) => convertToBaseContentPreset(model, index));
@@ -178,12 +178,12 @@ export const useAIModels = (category?: string) => {
           // Fetch usage history for projects (if user is authenticated)
           try {
             const allProjects: BaseProject[] = [];
-            
+
             for (const model of apiModels) {
               try {
                 const historyResponse = await apiService.getUsageHistory(model.slug, 5);
                 if (historyResponse.success && historyResponse.data) {
-                  const modelProjects = historyResponse.data.map(usage => 
+                  const modelProjects = historyResponse.data.map(usage =>
                     convertToBaseProject(usage, model)
                   );
                   allProjects.push(...modelProjects);
@@ -193,16 +193,26 @@ export const useAIModels = (category?: string) => {
                 console.warn(`Could not fetch history for ${model.slug}:`, error);
               }
             }
-            
+
             setProjects(allProjects);
           } catch (error) {
             console.warn('Could not fetch usage history:', error);
             setProjects([]); // Set empty projects if history fetch fails
           }
+        } else {
+          // If API call succeeds but no data, set empty arrays
+          setModels([]);
+          setContentPresets([]);
+          setProjects([]);
         }
       } catch (error) {
         console.error('Error fetching AI models:', error);
         setError(error instanceof Error ? error.message : 'Failed to fetch models');
+
+        // Set empty arrays on error to prevent UI crashes
+        setModels([]);
+        setContentPresets([]);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
