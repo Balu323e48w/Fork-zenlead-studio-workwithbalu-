@@ -1,19 +1,12 @@
 import { useState } from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
-import { 
-  Languages, 
-  Headphones, 
-  Wand2, 
-  LucideIcon,
-  Volume2,
-  Mic,
-  AudioWaveform
-} from "lucide-react";
+import { Volume2 } from "lucide-react";
 
-import { AIStudioBase, BaseModel, BaseContentPreset, BaseProject } from "@/components/ai-studio/AIStudioBase";
+import { AIStudioBase } from "@/components/ai-studio/AIStudioBase";
 import { ModelSelectionInterface } from "@/components/ai-studio/ModelSelectionInterface";
 import { ModelPage } from "@/components/ai-studio/ModelPage";
 import { ModelModal } from "@/components/ModelModal";
+import { useAIModels } from "@/hooks/useAIModels";
 
 import AudioTranslate from "@/components/audio-processing/audio-translate";
 import VoiceClone from "@/components/audio-processing/voice-clone";
