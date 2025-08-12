@@ -296,7 +296,7 @@ export const AIStudioBase = ({
               </div>
             </div>
             <Button
-              onClick={onNewProject}
+              onClick={() => setIsNewProjectModalOpen(true)}
               size="sm"
               variant="outline"
               className="gap-2"
