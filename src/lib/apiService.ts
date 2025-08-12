@@ -1,5 +1,7 @@
+import { config } from '@/config/env';
+
 // API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = config.API_BASE_URL;
 
 // Types based on your API models
 export interface AIModel {
