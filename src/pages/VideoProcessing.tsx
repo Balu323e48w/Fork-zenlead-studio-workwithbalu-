@@ -113,6 +113,7 @@ const VideoProcessing = () => {
       onNewProject={handleNewProject}
       filterTypes={filterTypes}
       category="video"
+      loading={loading}
     >
       <Routes>
         {/* Main selection interface */}
