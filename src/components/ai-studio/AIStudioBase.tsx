@@ -200,62 +200,66 @@ export const AIStudioBase = ({
         </div>
 
         <ScrollArea className="h-[calc(100vh-280px)] px-3 lg:px-4">
-          <div className="space-y-3 pb-4">
-          {filteredProjects.map((project) => {
-            const traditionalModel = traditionalModels.find(m => m.key === project.type);
-            const contentPreset = contentPresets.find(p => p.id === project.type);
-            const item = traditionalModel || contentPreset;
-            const Icon = item?.icon || StudioIcon;
+          {loading ? (
+            <ProjectListSkeleton count={5} />
+          ) : (
+            <div className="space-y-3 pb-4">
+            {filteredProjects.map((project) => {
+              const traditionalModel = traditionalModels.find(m => m.key === project.type);
+              const contentPreset = contentPresets.find(p => p.id === project.type);
+              const item = traditionalModel || contentPreset;
+              const Icon = item?.icon || StudioIcon;
 
-            return (
-              <Card
-                key={project.id}
-                className="cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => onClose?.()}
-              >
-                <CardContent className="p-3 lg:p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg bg-gradient-to-r ${item?.color || 'from-gray-500 to-gray-600'} text-white flex-shrink-0`}>
-                      {(() => {
-                        const IconComponent = Icon;
-                        return <IconComponent className="h-3 w-3 lg:h-4 lg:w-4" />;
-                      })()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-xs lg:text-sm truncate mb-1">{project.title}</h4>
-                      <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{project.preview}</p>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <Badge className={`text-xs ${getStatusColor(project.status)}`}>
-                            {project.status}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {project.category === 'traditional' ? 'Tool' : 'Gen'}
-                          </Badge>
-                          {project.metadata?.duration && (
-                            <Badge variant="outline" className="text-xs">
-                              {project.metadata.duration}
+              return (
+                <Card
+                  key={project.id}
+                  className="cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => onClose?.()}
+                >
+                  <CardContent className="p-3 lg:p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg bg-gradient-to-r ${item?.color || 'from-gray-500 to-gray-600'} text-white flex-shrink-0`}>
+                        {(() => {
+                          const IconComponent = Icon;
+                          return <IconComponent className="h-3 w-3 lg:h-4 lg:w-4" />;
+                        })()}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-xs lg:text-sm truncate mb-1">{project.title}</h4>
+                        <p className="text-xs text-muted-foreground mb-2 line-clamp-2">{project.preview}</p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <Badge className={`text-xs ${getStatusColor(project.status)}`}>
+                              {project.status}
                             </Badge>
-                          )}
+                            <Badge variant="outline" className="text-xs">
+                              {project.category === 'traditional' ? 'Tool' : 'Gen'}
+                            </Badge>
+                            {project.metadata?.duration && (
+                              <Badge variant="outline" className="text-xs">
+                                {project.metadata.duration}
+                              </Badge>
+                            )}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {formatTimestamp(project.timestamp)}
+                          </span>
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {formatTimestamp(project.timestamp)}
-                        </span>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                  </CardContent>
+                </Card>
+              );
+            })}
 
-          {filteredProjects.length === 0 && (
-            <div className="text-center py-8">
-              <StudioIcon className="h-8 w-8 lg:h-12 lg:w-12 text-muted-foreground/50 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">No projects found</p>
+            {filteredProjects.length === 0 && !loading && (
+              <div className="text-center py-8">
+                <StudioIcon className="h-8 w-8 lg:h-12 lg:w-12 text-muted-foreground/50 mx-auto mb-3" />
+                <p className="text-sm text-muted-foreground">No projects found</p>
+              </div>
+            )}
             </div>
           )}
-          </div>
         </ScrollArea>
       </div>
     </div>
