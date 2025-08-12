@@ -80,7 +80,7 @@ class APIService {
 
     // Add auth token if available
     try {
-      const token = localStorage.getItem('authToken');
+      const token = localStorage.getItem('zenlead_access_token');
       if (token) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
       }
