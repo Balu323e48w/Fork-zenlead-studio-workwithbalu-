@@ -211,6 +211,7 @@ const mockProjects: BaseProject[] = [
     model: 'BookGenix Pro',
     preview: 'A comprehensive guide covering React fundamentals, advanced patterns, and best practices...',
     category: 'content-generation',
+    section: 'text',
     metadata: { wordCount: 45000 }
   },
   {
@@ -221,7 +222,8 @@ const mockProjects: BaseProject[] = [
     status: 'completed',
     model: 'VoiceCraft',
     preview: 'Converted marketing presentation to natural-sounding speech in English...',
-    category: 'traditional'
+    category: 'traditional',
+    section: 'text'
   },
   {
     id: '3',
@@ -231,7 +233,8 @@ const mockProjects: BaseProject[] = [
     status: 'completed',
     model: 'Excelerate',
     preview: 'Transformed Q4 sales data into comprehensive charts and audio summary...',
-    category: 'traditional'
+    category: 'traditional',
+    section: 'text'
   },
   {
     id: '4',
@@ -241,7 +244,8 @@ const mockProjects: BaseProject[] = [
     status: 'processing',
     model: 'CourseBuilder',
     preview: 'Comprehensive onboarding course for new backend developers using our tech stack...',
-    category: 'content-generation'
+    category: 'content-generation',
+    section: 'text'
   },
   {
     id: '5',
@@ -251,7 +255,8 @@ const mockProjects: BaseProject[] = [
     status: 'completed',
     model: 'TextSummarizer',
     preview: 'Summarized 50-page AI research paper into key insights and findings...',
-    category: 'traditional'
+    category: 'traditional',
+    section: 'text'
   }
 ];
 
