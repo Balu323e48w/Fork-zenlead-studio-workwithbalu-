@@ -159,10 +159,13 @@ export const useAIModels = (category?: string) => {
         setError(null);
 
         // Fetch models for the specific category
+        console.log(`🔍 Fetching models for category: ${category}`);
         const response = await apiService.getModelsByCategory(category || '');
+        console.log('📡 API Response:', response);
 
         if (response.success && response.data.models) {
           const apiModels = response.data.models;
+          console.log('📋 API Models received:', apiModels.length, 'models');
 
           // Define content generation model slugs
           const contentGenerationSlugs = [
