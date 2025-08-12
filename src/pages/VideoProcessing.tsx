@@ -172,6 +172,7 @@ const VideoProcessing = () => {
       onItemSelect={handleItemSelect}
       onNewProject={handleNewProject}
       filterTypes={filterTypes}
+      category="video"
     >
       <Routes>
         {/* Main selection interface */}
