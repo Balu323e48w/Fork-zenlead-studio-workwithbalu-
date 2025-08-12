@@ -220,6 +220,7 @@ const TextProcessing = () => {
       onNewProject={handleNewProject}
       filterTypes={filterTypes}
       category="text"
+      loading={loading}
     >
       <Routes>
         {/* Main selection interface */}
