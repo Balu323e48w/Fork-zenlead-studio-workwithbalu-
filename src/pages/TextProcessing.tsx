@@ -62,21 +62,14 @@ const TextProcessing = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Fetch models from API - get both text and content models
-  const { 
-    models: textModels, 
-    contentPresets, 
-    projects, 
-    loading: textLoading, 
-    error: textError 
+  // Fetch models from API - all text and content models are in 'text' category
+  const {
+    models: textModels,
+    contentPresets,
+    projects,
+    loading: textLoading,
+    error: textError
   } = useAIModels('text');
-  
-  const { 
-    models: contentModels, 
-    contentPresets: additionalContentPresets, 
-    loading: contentLoading, 
-    error: contentError 
-  } = useAIModels('content');
 
   // Combine all traditional models (text + any content that should be traditional)
   const [traditionalModels, setTraditionalModels] = useState(textModels);
