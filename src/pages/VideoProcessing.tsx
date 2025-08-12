@@ -57,6 +57,7 @@ const mockProjects: BaseProject[] = [
     model: 'VideoGenix Pro',
     preview: 'A serene sunset over calm ocean waves with seagulls flying in the distance...',
     category: 'traditional',
+    section: 'video',
     metadata: { duration: '0:15' }
   },
   {
@@ -68,6 +69,7 @@ const mockProjects: BaseProject[] = [
     model: 'VideoGenix Pro',
     preview: 'Bustling city street at night with neon lights and traffic flow...',
     category: 'traditional',
+    section: 'video',
     metadata: { duration: '0:20' }
   },
   {
@@ -79,6 +81,7 @@ const mockProjects: BaseProject[] = [
     model: 'VideoGenix Pro',
     preview: 'Majestic mountain range with flowing clouds and golden hour lighting...',
     category: 'traditional',
+    section: 'video',
     metadata: { duration: '0:30' }
   },
   {
@@ -90,6 +93,7 @@ const mockProjects: BaseProject[] = [
     model: 'VideoGenix Pro',
     preview: 'Colorful abstract shapes morphing and flowing in dynamic patterns...',
     category: 'traditional',
+    section: 'video',
     metadata: { duration: '0:25' }
   }
 ];
