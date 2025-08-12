@@ -69,6 +69,7 @@ interface AIStudioBaseProps {
   onItemSelect: (item: BaseModel | BaseContentPreset, type: 'traditional' | 'content-generation') => void;
   onNewProject: () => void;
   filterTypes: { value: string; label: string }[];
+  category: string; // 'audio', 'text', 'video', etc.
 }
 
 export const AIStudioBase = ({
