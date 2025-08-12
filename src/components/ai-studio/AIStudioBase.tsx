@@ -84,7 +84,8 @@ export const AIStudioBase = ({
   children,
   onItemSelect,
   onNewProject,
-  filterTypes
+  filterTypes,
+  category
 }: AIStudioBaseProps) => {
   // Mobile sidebar state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
