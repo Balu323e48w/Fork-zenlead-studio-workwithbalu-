@@ -5,6 +5,7 @@ import { DocumentUpload } from "@/components/DocumentUpload";
 import { ArrowRight } from "lucide-react";
 import { TextProcessingState } from "@/pages/TextProcessing";
 import { AtsScoreShimmer } from "@/components/ContentShimmer";
+import { ContentGenerationShimmer } from "@/components/UploadShimmer";
 
 interface AtsScoreProps {
   state: TextProcessingState;
@@ -80,13 +81,19 @@ const AtsScore = ({ state, isLocked }: AtsScoreProps) => {
               )}
             </div>
             <div className="flex justify-end mt-4">
-              <Button 
+              <Button
                 onClick={handleGenerateAtsScore}
                 disabled={!atsFile || !jobDescription.trim() || isAtsLoading}
                 className="w-full"
               >
-                {isAtsLoading ? "Calculating..." : "Generate ATS Score"} 
-                {!isAtsLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+                {isAtsLoading ? (
+                  <ContentGenerationShimmer />
+                ) : (
+                  <>
+                    Generate ATS Score
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>

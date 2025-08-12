@@ -5,6 +5,7 @@ import { DocumentUpload } from "@/components/DocumentUpload";
 import { ArrowRight } from "lucide-react";
 import { TextProcessingState } from "@/pages/TextProcessing";
 import { ResumeAnalysisShimmer } from "@/components/ContentShimmer";
+import { ContentGenerationShimmer } from "@/components/UploadShimmer";
 
 const exampleResumeAnalysis = (jobDescription: string) => ({
   bestPractices: [
@@ -117,13 +118,19 @@ const ResumeAnalyser = ({ state, isLocked }: ResumeAnalyserProps) => {
               )}
             </div>
             <div className="flex justify-end mt-4">
-              <Button 
+              <Button
                 onClick={handleAnalyseResume}
                 disabled={!resumeFile || !resumeJobDescription.trim() || isResumeLoading}
                 className="w-full"
               >
-                {isResumeLoading ? "Analyzing..." : "Analyse Resume"} 
-                {!isResumeLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+                {isResumeLoading ? (
+                  <ContentGenerationShimmer />
+                ) : (
+                  <>
+                    Analyse Resume
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>

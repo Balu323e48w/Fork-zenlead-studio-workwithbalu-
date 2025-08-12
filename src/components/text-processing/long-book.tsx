@@ -4,6 +4,7 @@ import { LockedFeature } from "@/components/ui/locked-feature";
 import { ArrowRight } from "lucide-react";
 import { TextProcessingState } from "@/pages/TextProcessing";
 import { BookContentShimmer } from "@/components/ContentShimmer";
+import { ContentGenerationShimmer } from "@/components/UploadShimmer";
 
 const exampleBookContent = (prompt: string) => [
   { heading: "Title", content: `AI-Generated Book: ${prompt}` },
@@ -49,8 +50,14 @@ const LongBook = ({ state, isLocked }: LongBookProps) => {
             />
             <div className="flex justify-end mt-4">
               <Button onClick={handleGenerateBook} disabled={!bookPrompt.trim() || isBookLoading} className="w-full">
-                {isBookLoading ? "Generating Book..." : "Generate Book"}
-                {!isBookLoading && <ArrowRight className="ml-2 h-4 w-4" />}
+                {isBookLoading ? (
+                  <ContentGenerationShimmer />
+                ) : (
+                  <>
+                    Generate Book
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>
