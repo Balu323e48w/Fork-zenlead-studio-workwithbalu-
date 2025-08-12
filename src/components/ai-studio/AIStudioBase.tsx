@@ -141,7 +141,7 @@ export const AIStudioBase = ({
           </div>
         </div>
         
-        <Button className="w-full gap-2 text-sm" onClick={() => {onNewProject(); onClose?.();}}>
+        <Button className="w-full gap-2 text-sm" onClick={() => {setIsNewProjectModalOpen(true); onClose?.();}}>
           <Plus className="h-4 w-4" />
           New Project
         </Button>
