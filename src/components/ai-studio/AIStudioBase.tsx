@@ -100,7 +100,8 @@ export const AIStudioBase = ({
     const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = filterType === "all" || project.type === filterType;
     const matchesCategory = filterCategory === "all" || project.category === filterCategory;
-    return matchesSearch && matchesType && matchesCategory;
+    const matchesSection = project.section === category;
+    return matchesSearch && matchesType && matchesCategory && matchesSection;
   });
 
   const formatTimestamp = (timestamp: string) => {
