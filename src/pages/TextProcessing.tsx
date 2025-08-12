@@ -184,8 +184,8 @@ const TextProcessing = () => {
     );
   };
 
-  const loading = textLoading || contentLoading;
-  const error = textError || contentError;
+  const loading = textLoading;
+  const error = textError;
 
   // Show error in a toast/banner instead of full page
   const showError = error && !loading;
