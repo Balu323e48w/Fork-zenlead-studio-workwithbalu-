@@ -91,7 +91,10 @@ export const AIStudioBase = ({
 }: AIStudioBaseProps) => {
   // Mobile sidebar state
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  
+
+  // New project modal state
+  const [isNewProjectModalOpen, setIsNewProjectModalOpen] = useState(false);
+
   // Project history state
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<string>("all");
