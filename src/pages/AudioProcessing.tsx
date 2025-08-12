@@ -141,6 +141,7 @@ const AudioProcessing = () => {
               traditionalModels={traditionalModels}
               contentPresets={audioContentPresets}
               basePath="/audio"
+              loading={loading}
             />
           } 
         />
