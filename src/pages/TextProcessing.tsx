@@ -255,25 +255,31 @@ const TextProcessing = () => {
         ))}
 
         {/* Content generation routes */}
-        <Route 
-          path="/book" 
-          element={<BookGeneration />} 
+        <Route
+          path="/long-form-book"
+          element={<BookGeneration />}
         />
-        
-        <Route 
-          path="/research" 
-          element={<ResearchGeneration />} 
+
+        <Route
+          path="/research-paper"
+          element={<ResearchGeneration />}
         />
-        
-        <Route 
-          path="/course" 
-          element={<CourseGeneration />} 
+
+        <Route
+          path="/course-material"
+          element={<CourseGeneration />}
         />
-        
-        <Route 
-          path="/letter" 
-          element={<LetterGeneration />} 
+
+        <Route
+          path="/professional-letter"
+          element={<LetterGeneration />}
         />
+
+        {/* Legacy short routes for backward compatibility */}
+        <Route path="/book" element={<BookGeneration />} />
+        <Route path="/research" element={<ResearchGeneration />} />
+        <Route path="/course" element={<CourseGeneration />} />
+        <Route path="/letter" element={<LetterGeneration />} />
 
         {/* Legacy routes for backward compatibility */}
         <Route 
