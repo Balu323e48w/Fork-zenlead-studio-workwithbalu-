@@ -73,6 +73,7 @@ interface AIStudioBaseProps {
   onNewProject: () => void;
   filterTypes: { value: string; label: string }[];
   category: string; // 'audio', 'text', 'video', etc.
+  loading?: boolean;
 }
 
 export const AIStudioBase = ({
