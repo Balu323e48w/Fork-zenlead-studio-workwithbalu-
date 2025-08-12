@@ -126,6 +126,7 @@ const VideoProcessing = () => {
               traditionalModels={traditionalModels}
               contentPresets={videoContentPresets}
               basePath="/video"
+              loading={loading}
             />
           } 
         />
