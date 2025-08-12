@@ -1,4 +1,5 @@
 import { config } from '@/config/env';
+import { tokenManager } from '@/lib/token';
 
 // API Configuration
 const API_BASE_URL = config.API_BASE_URL;
@@ -80,8 +81,8 @@ class APIService {
 
     // Add auth token if available
     try {
-      const token = localStorage.getItem('zenlead_access_token');
-      if (token) {
+      const token = tokenManager.getToken();
+      if (token && tokenManager.isTokenValid(token)) {
         defaultHeaders['Authorization'] = `Bearer ${token}`;
       }
     } catch (error) {
