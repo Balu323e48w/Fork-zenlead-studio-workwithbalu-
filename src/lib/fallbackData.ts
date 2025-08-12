@@ -151,6 +151,17 @@ export const fallbackContentPresets: BaseContentPreset[] = [
     path: "/course"
   },
   {
+    id: 'research-paper',
+    title: 'Research Paper',
+    description: 'Create academic papers with abstract, methodology, results, citations, and appendix',
+    icon: FileCheck,
+    color: 'from-blue-500 to-blue-600',
+    bgColor: 'bg-blue-50 dark:bg-blue-950/20',
+    estimatedTime: '10-20 minutes',
+    features: ['Abstract', 'Literature Review', 'Methodology', 'Citations', 'Appendix'],
+    path: "/research"
+  },
+  {
     id: 'professional-letter',
     title: 'Professional Letter',
     description: 'Craft formal and informal letters with custom branding and formatting',
