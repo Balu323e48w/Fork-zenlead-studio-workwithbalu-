@@ -12,6 +12,7 @@ interface ModelSelectionInterfaceProps {
   traditionalModels: BaseModel[];
   contentPresets: BaseContentPreset[];
   basePath: string; // e.g., "/text" or "/audio"
+  loading?: boolean;
 }
 
 export const ModelSelectionInterface = ({
