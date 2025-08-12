@@ -128,6 +128,7 @@ const AudioProcessing = () => {
       onNewProject={handleNewProject}
       filterTypes={filterTypes}
       category="audio"
+      loading={loading}
     >
       <Routes>
         {/* Main selection interface */}
