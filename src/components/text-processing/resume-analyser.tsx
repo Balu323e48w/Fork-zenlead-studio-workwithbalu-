@@ -4,6 +4,7 @@ import { LockedFeature } from "@/components/ui/locked-feature";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { ArrowRight } from "lucide-react";
 import { TextProcessingState } from "@/pages/TextProcessing";
+import { ResumeAnalysisShimmer } from "@/components/ContentShimmer";
 
 const exampleResumeAnalysis = (jobDescription: string) => ({
   bestPractices: [
@@ -79,7 +80,7 @@ const ResumeAnalyser = ({ state, isLocked }: ResumeAnalyserProps) => {
           <CardContent>
             <div className="max-h-[400px] overflow-y-auto border bg-background rounded-md px-4 py-3 shadow-inner">
               {isResumeLoading && (
-                <div className="text-center text-muted-foreground py-12">Analyzing resume, please wait...</div>
+                <ResumeAnalysisShimmer />
               )}
               {!isResumeLoading && resumeAnalysis && (
                 <div className="space-y-6">

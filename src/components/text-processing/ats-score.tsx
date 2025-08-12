@@ -4,6 +4,7 @@ import { LockedFeature } from "@/components/ui/locked-feature";
 import { DocumentUpload } from "@/components/DocumentUpload";
 import { ArrowRight } from "lucide-react";
 import { TextProcessingState } from "@/pages/TextProcessing";
+import { AtsScoreShimmer } from "@/components/ContentShimmer";
 
 interface AtsScoreProps {
   state: TextProcessingState;
@@ -62,7 +63,7 @@ const AtsScore = ({ state, isLocked }: AtsScoreProps) => {
           <CardContent>
             <div className="max-h-[400px] overflow-y-auto border bg-background rounded-md px-4 py-3 shadow-inner">
               {isAtsLoading && (
-                <div className="text-center text-muted-foreground py-12">Calculating ATS score, please wait...</div>
+                <AtsScoreShimmer />
               )}
               {!isAtsLoading && atsScore !== null && (
                 <div className="space-y-4">

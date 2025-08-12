@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { LockedFeature } from "@/components/ui/locked-feature";
 import { ArrowRight } from "lucide-react";
 import { TextProcessingState } from "@/pages/TextProcessing";
+import { BookContentShimmer } from "@/components/ContentShimmer";
 
 const exampleBookContent = (prompt: string) => [
   { heading: "Title", content: `AI-Generated Book: ${prompt}` },
@@ -67,7 +68,7 @@ const LongBook = ({ state, isLocked }: LongBookProps) => {
           <CardContent>
             <div className="max-h-[400px] overflow-y-auto border bg-background rounded-md px-4 py-3 shadow-inner">
               {isBookLoading && (
-                <div className="text-center text-muted-foreground py-12">Generating book, please wait...</div>
+                <BookContentShimmer />
               )}
               {!isBookLoading && bookContent && (
                 <div className="space-y-6">
