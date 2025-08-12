@@ -137,7 +137,7 @@ export const fallbackContentPresets: BaseContentPreset[] = [
     bgColor: 'bg-purple-50 dark:bg-purple-950/20',
     estimatedTime: '15-30 minutes',
     features: ['Chapter Structure', 'Cover Design', 'Image Integration', 'Bibliography', 'Table of Contents'],
-    path: "/book"
+    path: "/long-form-book"
   },
   {
     id: 'course-material',
@@ -148,7 +148,7 @@ export const fallbackContentPresets: BaseContentPreset[] = [
     bgColor: 'bg-green-50 dark:bg-green-950/20',
     estimatedTime: '20-40 minutes',
     features: ['Lesson Modules', 'Interactive Exercises', 'Diagrams', 'Assessments', 'Progress Tracking'],
-    path: "/course"
+    path: "/course-material"
   },
   {
     id: 'research-paper',
@@ -159,7 +159,7 @@ export const fallbackContentPresets: BaseContentPreset[] = [
     bgColor: 'bg-blue-50 dark:bg-blue-950/20',
     estimatedTime: '10-20 minutes',
     features: ['Abstract', 'Literature Review', 'Methodology', 'Citations', 'Appendix'],
-    path: "/research"
+    path: "/research-paper"
   },
   {
     id: 'professional-letter',
@@ -170,7 +170,7 @@ export const fallbackContentPresets: BaseContentPreset[] = [
     bgColor: 'bg-orange-50 dark:bg-orange-950/20',
     estimatedTime: '2-5 minutes',
     features: ['Letterhead', 'Formal Structure', 'Custom Branding', 'Multiple Formats', 'Templates'],
-    path: "/letter"
+    path: "/professional-letter"
   }
 ];
 
