@@ -379,6 +379,7 @@ const TextProcessing = () => {
       onItemSelect={handleItemSelect}
       onNewProject={handleNewProject}
       filterTypes={filterTypes}
+      category="text"
     >
       <Routes>
         {/* Main selection interface */}
