@@ -95,6 +95,7 @@ const mockProjects: BaseProject[] = [
     model: 'AudioTrans',
     preview: 'Translated product demo from English to French preserving speaker tone...',
     category: 'traditional',
+    section: 'audio',
     metadata: { duration: '8:30' }
   },
   {
@@ -106,6 +107,7 @@ const mockProjects: BaseProject[] = [
     model: 'VoiceReplicator',
     preview: 'Created AI voice clone for automated company announcements...',
     category: 'traditional',
+    section: 'audio',
     metadata: { duration: '5:20' }
   },
   {
@@ -117,6 +119,7 @@ const mockProjects: BaseProject[] = [
     model: 'AudioClear',
     preview: 'Enhanced remote interview recording with noise reduction and clarity...',
     category: 'traditional',
+    section: 'audio',
     metadata: { duration: '45:12' }
   },
   {
@@ -128,6 +131,7 @@ const mockProjects: BaseProject[] = [
     model: 'AudioTrans',
     preview: 'Converting English presentation to Spanish with original voice characteristics...',
     category: 'traditional',
+    section: 'audio',
     metadata: { duration: '12:15' }
   }
 ];
