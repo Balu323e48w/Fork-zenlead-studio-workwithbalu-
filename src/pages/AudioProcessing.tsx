@@ -23,121 +23,18 @@ export interface AudioProcessingState {
   setIsProcessing: (isProcessing: boolean) => void;
 }
 
-// Traditional audio processing models with paths
-const traditionalModels: BaseModel[] = [
-  {
-    key: "translate",
-    title: "Audio Translation",
-    titletagline: "Multilingual voice conversion",
-    description: "Translate audio into 20+ languages while preserving the original voice's emotion, tone, and speaking style for authentic cross-language communication.",
-    modelName: "AudioTrans",
-    modelkeywords: ["Audio Translation", "Multilingual"],
-    sucessrate: 97,
-    processingspeed: "Fast",
-    icon: Languages,
-    color: "from-blue-500 to-blue-600",
-    bgColor: "bg-blue-50 dark:bg-blue-950/20",
-    badge: "Popular",
-    category: 'traditional',
-    path: "/translate"
-  },
-  {
-    key: "clone",
-    title: "Voice Cloning",
-    titletagline: "AI-powered voice replication",
-    description: "Create an accurate digital clone of any voice from just a few audio samples. Perfect for content creation, personalization, and accessibility.",
-    modelName: "VoiceReplicator",
-    modelkeywords: ["Voice Cloning", "AI Voice"],
-    sucessrate: 94,
-    processingspeed: "Moderate",
-    icon: Headphones,
-    color: "from-purple-500 to-purple-600",
-    bgColor: "bg-purple-50 dark:bg-purple-950/20",
-    badge: "AI Powered",
-    category: 'traditional',
-    path: "/clone"
-  },
-  {
-    key: "enhance",
-    title: "Audio Enhancement",
-    titletagline: "Professional audio cleanup",
-    description: "Transform low-quality audio into crystal-clear recordings with advanced noise reduction, echo removal, and clarity enhancement algorithms.",
-    modelName: "AudioClear",
-    modelkeywords: ["Audio Enhancement", "Noise Reduction"],
-    sucessrate: 92,
-    processingspeed: "Fast",
-    icon: Wand2,
-    color: "from-green-500 to-green-600",
-    bgColor: "bg-green-50 dark:bg-green-950/20",
-    badge: "Pro Tools",
-    category: 'traditional',
-    path: "/enhance"
-  },
-];
-
-// Content generation presets with paths (removed for audio processing focus)
-const audioContentPresets: BaseContentPreset[] = [];
-
-const mockProjects: BaseProject[] = [
-  {
-    id: '1',
-    title: 'French Audio Translation',
-    type: 'translate',
-    timestamp: '2024-01-15T10:30:00Z',
-    status: 'completed',
-    model: 'AudioTrans',
-    preview: 'Translated product demo from English to French preserving speaker tone...',
-    category: 'traditional',
-    section: 'audio',
-    metadata: { duration: '8:30' }
-  },
-  {
-    id: '2',
-    title: 'CEO Voice Clone',
-    type: 'clone',
-    timestamp: '2024-01-14T14:20:00Z',
-    status: 'completed',
-    model: 'VoiceReplicator',
-    preview: 'Created AI voice clone for automated company announcements...',
-    category: 'traditional',
-    section: 'audio',
-    metadata: { duration: '5:20' }
-  },
-  {
-    id: '3',
-    title: 'Interview Audio Enhancement',
-    type: 'enhance',
-    timestamp: '2024-01-13T09:15:00Z',
-    status: 'completed',
-    model: 'AudioClear',
-    preview: 'Enhanced remote interview recording with noise reduction and clarity...',
-    category: 'traditional',
-    section: 'audio',
-    metadata: { duration: '45:12' }
-  },
-  {
-    id: '4',
-    title: 'Spanish Voice Translation',
-    type: 'translate',
-    timestamp: '2024-01-12T16:30:00Z',
-    status: 'processing',
-    model: 'AudioTrans',
-    preview: 'Converting English presentation to Spanish with original voice characteristics...',
-    category: 'traditional',
-    section: 'audio',
-    metadata: { duration: '12:15' }
-  }
-];
-
-const filterTypes = [
-  { value: "translate", label: "Translation" },
-  { value: "clone", label: "Voice Clone" },
-  { value: "enhance", label: "Enhancement" },
-];
-
 const AudioProcessing = () => {
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Fetch audio models from API
+  const { 
+    models: traditionalModels, 
+    contentPresets: audioContentPresets, 
+    projects, 
+    loading, 
+    error 
+  } = useAIModels('audio');
 
   // Traditional model state - persistent settings
   const [audioFile, setAudioFile] = useState<File | null>(null);
@@ -154,22 +51,27 @@ const AudioProcessing = () => {
     selectedVoice, setSelectedVoice, isProcessing, setIsProcessing,
   };
 
-  const lockedTabs = {
-    translate: true,
-    clone: true,
-    enhance: true,
-  };
+  // Create filter types from available models
+  const filterTypes = traditionalModels.map(model => ({
+    value: model.key,
+    label: model.title.replace('Audio ', '').replace(' Audio', '')
+  }));
+
+  const lockedTabs = traditionalModels.reduce((acc, model) => {
+    acc[model.key] = true;
+    return acc;
+  }, {} as Record<string, boolean>);
 
   const handleNewProject = () => {
     navigate('/audio');
   };
 
-  const handleItemSelect = (item: BaseModel | BaseContentPreset, type: 'traditional' | 'content-generation') => {
+  const handleItemSelect = (item: any, type: 'traditional' | 'content-generation') => {
     if (type === 'traditional') {
-      const model = item as BaseModel;
+      const model = item;
       navigate(`/audio${model.path}`);
     } else {
-      const preset = item as BaseContentPreset;
+      const preset = item;
       navigate(`/audio${preset.path}`);
     }
   };
@@ -185,12 +87,15 @@ const AudioProcessing = () => {
 
   const renderModelContent = (modelKey: string) => {
     switch (modelKey) {
+      case "audio-translation":
       case "translate":
-        return <AudioTranslate state={state} isLocked={lockedTabs.translate} />;
+        return <AudioTranslate state={state} isLocked={lockedTabs[modelKey] || lockedTabs["translate"]} />;
+      case "voice-cloning":
       case "clone":
-        return <VoiceClone state={state} isLocked={lockedTabs.clone} />;
+        return <VoiceClone state={state} isLocked={lockedTabs[modelKey] || lockedTabs["clone"]} />;
+      case "audio-enhancement":
       case "enhance":
-        return <AudioEnhance state={state} isLocked={lockedTabs.enhance} />;
+        return <AudioEnhance state={state} isLocked={lockedTabs[modelKey] || lockedTabs["enhance"]} />;
       default:
         return null;
     }
@@ -198,15 +103,44 @@ const AudioProcessing = () => {
 
   // Get current model based on path
   const getCurrentModel = (path: string) => {
-    return traditionalModels.find(model => model.path === path);
+    const cleanPath = path.replace('/audio/', '').replace('/audio', '');
+    return traditionalModels.find(model => 
+      model.path.includes(cleanPath) || 
+      model.key === cleanPath ||
+      model.key.replace('-', '_') === cleanPath
+    );
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading audio models...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">Error loading audio models: {error}</p>
+          <button onClick={() => window.location.reload()} className="text-primary hover:underline">
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AIStudioBase
       title="AI Audio Processing Studio"
       subtitle="Audio Processing"
       icon={Volume2}
-      projects={mockProjects}
+      projects={projects}
       traditionalModels={traditionalModels}
       contentPresets={audioContentPresets}
       activeItem={null}
@@ -231,12 +165,28 @@ const AudioProcessing = () => {
           } 
         />
         
-        {/* Traditional model routes */}
+        {/* Dynamic routes for traditional models */}
+        {traditionalModels.map((model) => (
+          <Route 
+            key={model.key}
+            path={model.path} 
+            element={
+              <ModelPage 
+                model={model}
+                backPath="/audio"
+              >
+                {renderModelContent(model.key)}
+              </ModelPage>
+            } 
+          />
+        ))}
+
+        {/* Legacy routes for backward compatibility */}
         <Route 
           path="/translate" 
           element={
             <ModelPage 
-              model={traditionalModels.find(m => m.key === "translate")!}
+              model={traditionalModels.find(m => m.key.includes("translation")) || traditionalModels[0]}
               backPath="/audio"
             >
               {renderModelContent("translate")}
@@ -248,7 +198,7 @@ const AudioProcessing = () => {
           path="/clone" 
           element={
             <ModelPage 
-              model={traditionalModels.find(m => m.key === "clone")!}
+              model={traditionalModels.find(m => m.key.includes("cloning")) || traditionalModels[0]}
               backPath="/audio"
             >
               {renderModelContent("clone")}
@@ -260,25 +210,24 @@ const AudioProcessing = () => {
           path="/enhance" 
           element={
             <ModelPage 
-              model={traditionalModels.find(m => m.key === "enhance")!}
+              model={traditionalModels.find(m => m.key.includes("enhancement")) || traditionalModels[0]}
               backPath="/audio"
             >
               {renderModelContent("enhance")}
             </ModelPage>
           } 
         />
-
       </Routes>
 
       {/* Enhanced Modal for Traditional Tools */}
       <ModelModal
         isOpen={isModalOpen}
         onClose={closeModal}
-        model={getCurrentModel(location.pathname.replace('/audio', '')) as any}
+        model={getCurrentModel(location.pathname) as any}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
       >
-        {renderModelContent(getCurrentModel(location.pathname.replace('/audio', ''))?.key || "")}
+        {renderModelContent(getCurrentModel(location.pathname)?.key || "")}
       </ModelModal>
     </AIStudioBase>
   );
