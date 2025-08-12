@@ -208,12 +208,16 @@ export const useAIModels = (category?: string) => {
         }
       } catch (error) {
         console.error('Error fetching AI models:', error);
-        setError(error instanceof Error ? error.message : 'Failed to fetch models');
+        console.warn('Falling back to offline data...');
 
-        // Set empty arrays on error to prevent UI crashes
-        setModels([]);
-        setContentPresets([]);
-        setProjects([]);
+        // Use fallback data when API is unavailable
+        const fallbackData = getFallbackData(category || '');
+        setModels(fallbackData.models);
+        setContentPresets(fallbackData.contentPresets);
+        setProjects(fallbackData.projects);
+
+        // Still set error but don't crash the UI
+        setError(`API unavailable, using offline data. ${error instanceof Error ? error.message : 'Failed to fetch models'}`);
       } finally {
         setLoading(false);
       }
