@@ -121,7 +121,7 @@ const convertToBaseContentPreset = (apiModel: AIModel, index: number): BaseConte
     bgColor: getBgColorForCategory(apiModel.category),
     estimatedTime: apiModel.estimated_time,
     features: apiModel.features,
-    path: `/${apiModel.slug.replace('-', '_')}`
+    path: `/${apiModel.slug}`
   };
 };
 
