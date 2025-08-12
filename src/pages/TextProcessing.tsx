@@ -233,6 +233,7 @@ const TextProcessing = () => {
               traditionalModels={traditionalModels}
               contentPresets={finalContentPresets}
               basePath="/text"
+              loading={loading}
             />
           } 
         />
