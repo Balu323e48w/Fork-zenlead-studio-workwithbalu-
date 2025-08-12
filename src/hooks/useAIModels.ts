@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { apiService, AIModel, UsageHistory } from '@/lib/apiService';
 import { BaseModel, BaseContentPreset, BaseProject } from '@/components/ai-studio/AIStudioBase';
+import { getFallbackData } from '@/lib/fallbackData';
 import { LucideIcon } from 'lucide-react';
-import { 
+import {
   Languages, Headphones, Wand2, Volume2, Mic, AudioWaveform,
-  FileText, BarChart3, FileDigit, FileCheck, Users, Book, 
+  FileText, BarChart3, FileDigit, FileCheck, Users, Book,
   GraduationCap, Mail, Video, Play, Film
 } from 'lucide-react';
 
