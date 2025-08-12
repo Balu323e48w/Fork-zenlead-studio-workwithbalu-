@@ -24,6 +24,7 @@ export interface BaseProject {
   model: string;
   preview: string;
   category: 'traditional' | 'content-generation';
+  section: string; // 'audio', 'text', 'video', etc.
   metadata?: Record<string, any>;
 }
 
