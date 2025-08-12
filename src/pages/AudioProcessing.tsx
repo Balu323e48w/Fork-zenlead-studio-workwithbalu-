@@ -111,29 +111,8 @@ const AudioProcessing = () => {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading audio models...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-destructive mb-4">Error loading audio models: {error}</p>
-          <button onClick={() => window.location.reload()} className="text-primary hover:underline">
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
+  // Show error in a toast/banner instead of full page
+  const showError = error && !loading;
 
   return (
     <AIStudioBase
