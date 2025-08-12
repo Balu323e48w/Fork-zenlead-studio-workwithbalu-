@@ -73,15 +73,20 @@ class APIService {
     options: RequestInit = {}
   ): Promise<APIResponse<T>> {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const defaultHeaders = {
       'Content-Type': 'application/json',
     };
 
     // Add auth token if available
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      defaultHeaders['Authorization'] = `Bearer ${token}`;
+    try {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+      }
+    } catch (error) {
+      // localStorage might not be available in some environments
+      console.warn('Could not access localStorage for auth token:', error);
     }
 
     const config: RequestInit = {
@@ -94,16 +99,43 @@ class APIService {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        let errorMessage = `HTTP error! status: ${response.status}`;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorData.detail || errorMessage;
+        } catch {
+          // If response is not JSON, use the status message
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
       }
-      
+
       const data = await response.json();
       return data;
     } catch (error) {
       console.error(`API request failed for ${endpoint}:`, error);
-      throw error;
+
+      // Create a user-friendly error message
+      let friendlyMessage = 'Network error occurred';
+      if (error instanceof Error) {
+        if (error.message.includes('fetch')) {
+          friendlyMessage = 'Unable to connect to server. Please check your internet connection.';
+        } else if (error.message.includes('401')) {
+          friendlyMessage = 'Authentication required. Please log in.';
+        } else if (error.message.includes('403')) {
+          friendlyMessage = 'Access denied. You do not have permission to access this resource.';
+        } else if (error.message.includes('404')) {
+          friendlyMessage = 'Resource not found.';
+        } else if (error.message.includes('500')) {
+          friendlyMessage = 'Server error occurred. Please try again later.';
+        } else {
+          friendlyMessage = error.message;
+        }
+      }
+
+      throw new Error(friendlyMessage);
     }
   }
 
