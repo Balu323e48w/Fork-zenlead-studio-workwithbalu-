@@ -221,6 +221,7 @@ const AudioProcessing = () => {
       onItemSelect={handleItemSelect}
       onNewProject={handleNewProject}
       filterTypes={filterTypes}
+      category="audio"
     >
       <Routes>
         {/* Main selection interface */}
