@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Zap, Target, ArrowRight, Clock } from "lucide-react";
 import { BaseModel, BaseContentPreset } from "./AIStudioBase";
+import { ModelGridSkeleton, ContentGridSkeleton } from "@/components/ModelCardSkeleton";
 import { useNavigate } from "react-router-dom";
 
 interface ModelSelectionInterfaceProps {
