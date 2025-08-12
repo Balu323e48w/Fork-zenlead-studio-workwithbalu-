@@ -71,18 +71,9 @@ const TextProcessing = () => {
     error: textError
   } = useAIModels('text');
 
-  // Combine all traditional models (text + any content that should be traditional)
-  const [traditionalModels, setTraditionalModels] = useState(textModels);
-  const [finalContentPresets, setFinalContentPresets] = useState(contentPresets);
-
-  useEffect(() => {
-    // Combine text models with content models for text processing
-    const allTraditionalModels = [...textModels];
-    const allContentPresets = [...contentPresets, ...additionalContentPresets];
-    
-    setTraditionalModels(allTraditionalModels);
-    setFinalContentPresets(allContentPresets);
-  }, [textModels, contentModels, contentPresets, additionalContentPresets]);
+  // Use models directly from API
+  const traditionalModels = textModels;
+  const finalContentPresets = contentPresets;
 
   // Traditional model state - persistent settings
   const [text, setText] = useState("");
