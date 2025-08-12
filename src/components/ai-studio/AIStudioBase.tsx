@@ -312,6 +312,17 @@ export const AIStudioBase = ({
           </div>
         </div>
       </div>
+
+      {/* New Project Modal */}
+      <NewProjectModal
+        isOpen={isNewProjectModalOpen}
+        onClose={() => setIsNewProjectModalOpen(false)}
+        title={title}
+        traditionalModels={traditionalModels}
+        contentPresets={contentPresets}
+        onModelSelect={(model) => onItemSelect(model, 'traditional')}
+        onPresetSelect={(preset) => onItemSelect(preset, 'content-generation')}
+      />
     </div>
   );
 };
