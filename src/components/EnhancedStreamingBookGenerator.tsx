@@ -416,14 +416,16 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
   }, [bookMetadata, chapters, tableOfContents, toast]);
 
   useEffect(() => {
-    if (!resumeState) {
+    if (!resumeState && !isGenerating && !streamHandler.current) {
+      console.log('🎯 Initializing book generation from useEffect');
       startGeneration();
     }
 
     return () => {
+      console.log('🧹 Cleanup: stopping generation');
       stopGeneration();
     };
-  }, [resumeState]); // Remove startGeneration from dependencies to prevent infinite loops
+  }, [resumeState]); // Only depend on resumeState to prevent infinite loops
 
   if (showCreditError) {
     return (
