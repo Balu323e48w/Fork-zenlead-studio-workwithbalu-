@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Book, Sparkles, FileText, Image, Users, Settings, Clock, CreditCard } from "lucide-react";
+import { Book, Sparkles, FileText, Users, Settings, Clock, CreditCard } from "lucide-react";
 import { apiService } from "@/lib/apiService";
 import { useToast } from "@/hooks/use-toast";
 
@@ -81,8 +81,6 @@ interface LongFormBookRequest {
   include_cover: boolean;
   author_name: string;
   book_title?: string;
-  search_api_key?: string;
-  cse_id?: string;
 }
 
 const BookGeneration = () => {
@@ -108,15 +106,13 @@ const BookGeneration = () => {
     include_index: false,
     include_cover: true,
     author_name: "AI Generated",
-    book_title: "",
-    search_api_key: "",
-    cse_id: ""
+    book_title: ""
   });
 
   const examplePrompts = [
+    "Complete understanding handbook of Indian Agriculture Overview",
     "A comprehensive guide to sustainable living in the modern world",
     "Complete beginner's handbook for cryptocurrency investing",
-    "Children's adventure story about space exploration",
     "Business strategy playbook for startup founders",
     "Self-help guide for building confidence and leadership skills"
   ];
@@ -126,7 +122,7 @@ const BookGeneration = () => {
     { value: BookGenre.FICTION, label: "Fiction", desc: "Creative storytelling" },
     { value: BookGenre.EDUCATIONAL, label: "Educational", desc: "Learning-focused content" },
     { value: BookGenre.BUSINESS, label: "Business", desc: "Professional insights" },
-    { value: BookGenre.SELF_HELP, label: "Self-Help", desc: "Personal development" },
+    { value: BookGenre.SELF_HELP, label: "Self Help", desc: "Personal development" },
     { value: BookGenre.CHILDREN, label: "Children", desc: "Age-appropriate stories" },
     { value: BookGenre.BIOGRAPHY, label: "Biography", desc: "Life stories" },
     { value: BookGenre.HEALTH, label: "Health", desc: "Wellness and medical" },
@@ -135,7 +131,7 @@ const BookGeneration = () => {
   ];
 
   const audienceOptions = [
-    { value: TargetAudience.GENERAL, label: "General Audience", desc: "Accessible to everyone" },
+    { value: TargetAudience.GENERAL, label: "General Public", desc: "Accessible to everyone" },
     { value: TargetAudience.PROFESSIONALS, label: "Professionals", desc: "Industry experts" },
     { value: TargetAudience.STUDENTS, label: "Students", desc: "Academic focused" },
     { value: TargetAudience.CHILDREN, label: "Children", desc: "Age-appropriate" },
@@ -145,10 +141,10 @@ const BookGeneration = () => {
   ];
 
   const lengthOptions = [
-    { value: BookLength.SHORT, label: "Short Book", pages: "50-100 pages", desc: "Quick focused read" },
-    { value: BookLength.STANDARD, label: "Standard Book", pages: "150-250 pages", desc: "Comprehensive coverage" },
-    { value: BookLength.EXTENDED, label: "Extended Book", pages: "300-400 pages", desc: "Deep exploration" },
-    { value: BookLength.EPIC, label: "Epic Book", pages: "500+ pages", desc: "Exhaustive guide" }
+    { value: BookLength.SHORT, label: "Short (50-100 pages)", desc: "Quick focused read" },
+    { value: BookLength.STANDARD, label: "Standard (150-250 pages)", desc: "Comprehensive coverage" },
+    { value: BookLength.EXTENDED, label: "Extended (300-400 pages)", desc: "Deep exploration" },
+    { value: BookLength.EPIC, label: "Epic (500+ pages)", desc: "Exhaustive guide" }
   ];
 
   const toneOptions = [
@@ -167,9 +163,9 @@ const BookGeneration = () => {
   ];
 
   const perspectiveOptions = [
-    { value: WritingPerspective.FIRST_PERSON, label: "First Person (I, We)" },
-    { value: WritingPerspective.SECOND_PERSON, label: "Second Person (You)" },
-    { value: WritingPerspective.THIRD_PERSON, label: "Third Person (He, She, They)" }
+    { value: WritingPerspective.FIRST_PERSON, label: "First Person" },
+    { value: WritingPerspective.SECOND_PERSON, label: "Second Person" },
+    { value: WritingPerspective.THIRD_PERSON, label: "Third Person" }
   ];
 
   const handleGenerate = async () => {
@@ -184,21 +180,30 @@ const BookGeneration = () => {
 
     setIsGenerating(true);
     try {
-      const response = await apiService.generateLongFormBook(formData);
-      
-      if (response.success) {
+      // Prepare data for API - remove empty book_title if not provided
+      const requestData = {
+        ...formData,
+        ...(formData.book_title?.trim() ? { book_title: formData.book_title.trim() } : {})
+      };
+
+      console.log('📚 Generating long-form book with data:', requestData);
+      const response = await apiService.generateLongFormBook(requestData);
+      console.log('📖 Book generation response:', response);
+
+      if (response.success && response.data) {
         setGeneratedBook(response.data);
         toast({
-          title: "Success",
-          description: "Book generated successfully!",
+          title: "Success", 
+          description: "Long-form book generated successfully!",
         });
       } else {
-        throw new Error(response.message);
+        throw new Error(response.message || 'Failed to generate book');
       }
     } catch (error: any) {
+      console.error('❌ Book generation failed:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to generate book",
+        description: error.message || "Failed to generate book. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -231,12 +236,12 @@ const BookGeneration = () => {
         </div>
       </div>
 
-      {/* Book Concept */}
+      {/* Basic Information */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5" />
-            Book Concept
+            Basic Information
           </CardTitle>
           <p className="text-sm text-muted-foreground">
             Describe what book you want to write
@@ -247,7 +252,7 @@ const BookGeneration = () => {
             <Label htmlFor="concept">Book Concept *</Label>
             <Textarea
               id="concept"
-              placeholder="e.g., A comprehensive guide to sustainable living in the modern world"
+              placeholder="e.g., Complete understanding handbook of Indian Agriculture Overview"
               value={formData.concept}
               onChange={(e) => updateFormData('concept', e.target.value)}
               className="min-h-20"
@@ -258,7 +263,7 @@ const BookGeneration = () => {
             <Label htmlFor="title">Book Title (Optional)</Label>
             <Input
               id="title"
-              placeholder="Auto-generated if not provided"
+              placeholder="Leave blank for auto-generation"
               value={formData.book_title}
               onChange={(e) => updateFormData('book_title', e.target.value)}
             />
@@ -292,134 +297,60 @@ const BookGeneration = () => {
         </CardContent>
       </Card>
 
-      {/* Genre & Audience */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Genre</CardTitle>
-            <p className="text-sm text-muted-foreground">Book category</p>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              {genreOptions.map((genre) => (
-                <Button
-                  key={genre.value}
-                  variant={formData.genre === genre.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => updateFormData('genre', genre.value)}
-                  className="h-auto p-3 flex flex-col items-start"
-                >
-                  <span className="font-medium">{genre.label}</span>
-                  <span className="text-xs text-muted-foreground">{genre.desc}</span>
-                </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Target Audience
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Who will read this book?</p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {audienceOptions.map((audience) => (
-                <Card
-                  key={audience.value}
-                  className={`cursor-pointer transition-all p-3 ${
-                    formData.target_audience === audience.value 
-                      ? 'ring-2 ring-primary border-primary' 
-                      : 'hover:shadow-sm'
-                  }`}
-                  onClick={() => updateFormData('target_audience', audience.value)}
-                >
-                  <div>
-                    <h4 className="font-medium text-sm">{audience.label}</h4>
-                    <p className="text-xs text-muted-foreground">{audience.desc}</p>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Book Length */}
+      {/* Book Properties */}
       <Card>
         <CardHeader>
-          <CardTitle>Book Length</CardTitle>
-          <p className="text-sm text-muted-foreground">Choose scope and depth</p>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {lengthOptions.map((length) => (
-              <Card
-                key={length.value}
-                className={`cursor-pointer transition-all ${
-                  formData.book_length === length.value 
-                    ? 'ring-2 ring-primary border-primary' 
-                    : 'hover:shadow-md'
-                }`}
-                onClick={() => updateFormData('book_length', length.value)}
-              >
-                <CardContent className="p-4 text-center space-y-2">
-                  <h3 className="font-semibold text-sm">{length.label}</h3>
-                  <p className="text-sm text-primary">{length.pages}</p>
-                  <p className="text-xs text-muted-foreground">{length.desc}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Structure Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
-            Structure Settings
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">Customize book structure</p>
+          <CardTitle>Book Properties</CardTitle>
+          <p className="text-sm text-muted-foreground">Define your book's characteristics</p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="chapters">Chapters Count (5-20)</Label>
-              <Input
-                id="chapters"
-                type="number"
-                min="5"
-                max="20"
-                value={formData.chapters_count}
-                onChange={(e) => updateFormData('chapters_count', parseInt(e.target.value) || 10)}
-              />
+              <Label>Book Genre</Label>
+              <Select value={formData.genre} onValueChange={(value) => updateFormData('genre', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {genreOptions.map((genre) => (
+                    <SelectItem key={genre.value} value={genre.value}>
+                      {genre.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="sections">Sections per Chapter (3-10)</Label>
-              <Input
-                id="sections"
-                type="number"
-                min="3"
-                max="10"
-                value={formData.sections_per_chapter}
-                onChange={(e) => updateFormData('sections_per_chapter', parseInt(e.target.value) || 6)}
-              />
+              <Label>Target Audience</Label>
+              <Select value={formData.target_audience} onValueChange={(value) => updateFormData('target_audience', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {audienceOptions.map((audience) => (
+                    <SelectItem key={audience.value} value={audience.value}>
+                      {audience.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+
             <div className="space-y-2">
-              <Label htmlFor="pages">Pages per Section (1-8)</Label>
-              <Input
-                id="pages"
-                type="number"
-                min="1"
-                max="8"
-                value={formData.pages_per_section}
-                onChange={(e) => updateFormData('pages_per_section', parseInt(e.target.value) || 3)}
-              />
+              <Label>Book Length</Label>
+              <Select value={formData.book_length} onValueChange={(value) => updateFormData('book_length', value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {lengthOptions.map((length) => (
+                    <SelectItem key={length.value} value={length.value}>
+                      {length.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
@@ -484,20 +415,89 @@ const BookGeneration = () => {
         </CardContent>
       </Card>
 
-      {/* Content Features */}
+      {/* Book Structure */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Book Structure
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">Customize book structure</p>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="chapters">Number of Chapters ({formData.chapters_count})</Label>
+              <input
+                id="chapters"
+                type="range"
+                min="5"
+                max="20"
+                step="1"
+                value={formData.chapters_count}
+                onChange={(e) => updateFormData('chapters_count', parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>5</span>
+                <span>20</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sections">Sections per Chapter ({formData.sections_per_chapter})</Label>
+              <input
+                id="sections"
+                type="range"
+                min="3"
+                max="10"
+                step="1"
+                value={formData.sections_per_chapter}
+                onChange={(e) => updateFormData('sections_per_chapter', parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>3</span>
+                <span>10</span>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="pages">Pages per Section ({formData.pages_per_section})</Label>
+              <input
+                id="pages"
+                type="range"
+                min="1"
+                max="8"
+                step="1"
+                value={formData.pages_per_section}
+                onChange={(e) => updateFormData('pages_per_section', parseInt(e.target.value))}
+                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>1</span>
+                <span>8</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Additional Features */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5" />
-            Content Features
+            Additional Features
           </CardTitle>
-          <p className="text-sm text-muted-foreground">Select what to include</p>
+          <p className="text-sm text-muted-foreground">Select what to include in your book</p>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="toc">Table of Contents</Label>
+                <div>
+                  <Label htmlFor="toc">Table of Contents</Label>
+                  <p className="text-xs text-muted-foreground">Add a comprehensive table of contents</p>
+                </div>
                 <Switch
                   id="toc"
                   checked={formData.include_toc}
@@ -505,7 +505,10 @@ const BookGeneration = () => {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="images">Include Images</Label>
+                <div>
+                  <Label htmlFor="images">Include Images</Label>
+                  <p className="text-xs text-muted-foreground">Add relevant images throughout the book</p>
+                </div>
                 <Switch
                   id="images"
                   checked={formData.include_images}
@@ -513,7 +516,10 @@ const BookGeneration = () => {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="bibliography">Bibliography</Label>
+                <div>
+                  <Label htmlFor="bibliography">Bibliography</Label>
+                  <p className="text-xs text-muted-foreground">Add bibliography and references</p>
+                </div>
                 <Switch
                   id="bibliography"
                   checked={formData.include_bibliography}
@@ -523,7 +529,10 @@ const BookGeneration = () => {
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label htmlFor="index">Index</Label>
+                <div>
+                  <Label htmlFor="index">Index</Label>
+                  <p className="text-xs text-muted-foreground">Add an index at the end</p>
+                </div>
                 <Switch
                   id="index"
                   checked={formData.include_index}
@@ -531,7 +540,10 @@ const BookGeneration = () => {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="cover">Cover Design Info</Label>
+                <div>
+                  <Label htmlFor="cover">Cover Design Info</Label>
+                  <p className="text-xs text-muted-foreground">Generate cover design information</p>
+                </div>
                 <Switch
                   id="cover"
                   checked={formData.include_cover}
@@ -544,29 +556,12 @@ const BookGeneration = () => {
           {formData.include_images && (
             <>
               <Separator className="my-4" />
-              <div className="space-y-4">
-                <h4 className="font-medium">Image Search Settings (Optional)</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="apiKey">Google Custom Search API Key</Label>
-                    <Input
-                      id="apiKey"
-                      type="password"
-                      placeholder="Optional: For custom image search"
-                      value={formData.search_api_key}
-                      onChange={(e) => updateFormData('search_api_key', e.target.value)}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cseId">Custom Search Engine ID</Label>
-                    <Input
-                      id="cseId"
-                      placeholder="Optional: Your CSE ID"
-                      value={formData.cse_id}
-                      onChange={(e) => updateFormData('cse_id', e.target.value)}
-                    />
-                  </div>
-                </div>
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <h4 className="font-medium mb-2">Image Generation</h4>
+                <p className="text-sm text-muted-foreground">
+                  Images will be automatically generated and included based on the content. 
+                  Image search is handled by the server using configured credentials.
+                </p>
               </div>
             </>
           )}
