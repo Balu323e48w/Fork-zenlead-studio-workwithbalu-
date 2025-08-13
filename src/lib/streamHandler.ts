@@ -9,8 +9,16 @@ interface StreamEventHandler {
 
 export class SSEStreamHandler {
   private controller: AbortController | null = null;
+  private isStreaming: boolean = false;
 
   async startStream(requestData: any, handlers: StreamEventHandler): Promise<void> {
+    // Prevent multiple simultaneous streams
+    if (this.isStreaming) {
+      console.warn('⚠️ Stream already in progress, aborting new request');
+      return;
+    }
+
+    this.isStreaming = true;
     this.controller = new AbortController();
     
     const url = `${config.API_BASE_URL}/api/ai/long-form-book/generate-stream`;
