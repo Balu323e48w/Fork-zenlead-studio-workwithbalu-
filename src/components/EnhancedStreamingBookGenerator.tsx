@@ -353,11 +353,12 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
   }, [requestData, processStreamEvent, onError]); // Remove isGenerating from dependencies
 
   const stopGeneration = useCallback(() => {
+    console.log('🛑 Stopping generation...');
     if (streamHandler.current) {
       streamHandler.current.stop();
       streamHandler.current = null;
     }
-    
+
     setIsGenerating(false);
     setCurrentMessage('Generation stopped');
     BookGenerationUtils.cancelGeneration();
