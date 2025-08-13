@@ -126,6 +126,8 @@ export class SSEStreamHandler {
           handlers.onError(error);
         }
       }
+    } finally {
+      this.isStreaming = false; // Always reset the streaming flag
     }
   }
 
@@ -134,6 +136,7 @@ export class SSEStreamHandler {
       this.controller.abort();
       this.controller = null;
     }
+    this.isStreaming = false; // Reset streaming flag when stopping
   }
 }
 
