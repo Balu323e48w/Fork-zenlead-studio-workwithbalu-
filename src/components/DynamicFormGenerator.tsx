@@ -305,10 +305,16 @@ const DynamicFormGenerator: React.FC<DynamicFormGeneratorProps> = ({
     if (!settings) return;
 
     try {
+      // Check user credits first
+      console.log('💰 Checking user credits...');
+
+      // For now, we'll proceed with validation and let the backend handle credit checking
+      // The backend will return appropriate error messages if credits are insufficient
+
       // Validate input before submitting
       console.log('🔍 Validating form data:', formData);
       const validationResponse = await apiService.validateUserInput(modelSlug, formData);
-      
+
       if (validationResponse.success && validationResponse.data.valid) {
         await onSubmit(validationResponse.data.validated_data);
       } else {
