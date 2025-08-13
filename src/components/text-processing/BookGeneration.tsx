@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Book, Eye, Download } from "lucide-react";
+import { Book, Eye, Download, ArrowLeft } from "lucide-react";
 import { apiService } from "@/lib/apiService";
 import { useToast } from "@/hooks/use-toast";
 import DynamicFormGenerator from "@/components/DynamicFormGenerator";
@@ -10,14 +9,13 @@ import StreamingBookGenerator from "@/components/StreamingBookGenerator";
 
 const BookGeneration = () => {
   const { toast } = useToast();
-  const [showStreamingModal, setShowStreamingModal] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const [generationRequestData, setGenerationRequestData] = useState<any>(null);
   const [generatedBooks, setGeneratedBooks] = useState<Array<{ usageId: string; bookData: any; requestData: any }>>([]);
-  const [viewingBook, setViewingBook] = useState<{ usageId: string; bookData: any } | null>(null);
 
   const handleGenerate = async (validatedData: any) => {
     setGenerationRequestData(validatedData);
-    setShowStreamingModal(true);
+    setIsGenerating(true);
   };
 
   const handleGenerationComplete = (usageId: string, bookData: any) => {
@@ -26,18 +24,26 @@ const BookGeneration = () => {
       ...prev
     ]);
     
+    setIsGenerating(false);
+    
     toast({
       title: "Success",
-      description: "Book generated successfully! You can now view or download it.",
+      description: "Book generated successfully! You can download the PDF or view it anytime.",
     });
   };
 
   const handleGenerationError = (error: string) => {
+    setIsGenerating(false);
     toast({
-      title: "Generation Failed",
+      title: "Generation Failed", 
       description: error,
       variant: "destructive"
     });
+  };
+
+  const handleCancelGeneration = () => {
+    setIsGenerating(false);
+    setGenerationRequestData(null);
   };
 
   const downloadPDF = async (usageId: string, title: string) => {
@@ -68,24 +74,89 @@ const BookGeneration = () => {
     }
   };
 
-  const viewStoredBook = async (usageId: string) => {
-    try {
-      const response = await apiService.getStoredBook(usageId);
-      
-      if (response.success && response.data) {
-        setViewingBook({ usageId, bookData: response.data });
-      } else {
-        throw new Error(response.message || 'Failed to get book data');
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to load book",
-        variant: "destructive"
-      });
-    }
-  };
+  // If generating, show split layout
+  if (isGenerating && generationRequestData) {
+    return (
+      <div className="h-screen flex flex-col">
+        {/* Header Bar */}
+        <div className="flex items-center justify-between p-4 border-b bg-background">
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleCancelGeneration}
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Settings
+            </Button>
+            <div className="flex items-center gap-2">
+              <Book className="h-5 w-5" />
+              <span className="font-medium">Long-Form Book Generation</span>
+            </div>
+          </div>
+        </div>
 
+        {/* Split Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Side - Settings Summary (25% width) */}
+          <div className="w-1/4 border-r bg-muted/30 p-4 overflow-y-auto">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">Book Settings</h3>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Concept:</span>
+                    <p className="font-medium">{generationRequestData.concept?.substring(0, 100)}...</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Genre:</span>
+                    <p className="font-medium capitalize">{generationRequestData.genre?.replace('-', ' ')}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Length:</span>
+                    <p className="font-medium capitalize">{generationRequestData.book_length?.replace('-', ' ')}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Chapters:</span>
+                    <p className="font-medium">{generationRequestData.chapters_count}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Author:</span>
+                    <p className="font-medium">{generationRequestData.author_name}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Tone:</span>
+                    <p className="font-medium capitalize">{generationRequestData.tone}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Features:</span>
+                    <div className="space-y-1">
+                      {generationRequestData.include_toc && <p className="text-xs">✓ Table of Contents</p>}
+                      {generationRequestData.include_images && <p className="text-xs">✓ Images</p>}
+                      {generationRequestData.include_bibliography && <p className="text-xs">✓ Bibliography</p>}
+                      {generationRequestData.include_cover && <p className="text-xs">✓ Cover Design</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Side - PDF Viewer (75% width) */}
+          <div className="flex-1 overflow-hidden">
+            <StreamingBookGenerator
+              requestData={generationRequestData}
+              onComplete={handleGenerationComplete}
+              onError={handleGenerationError}
+              onCancel={handleCancelGeneration}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Default view - form and history
   return (
     <div className="space-y-8">
       {/* Dynamic Form */}
@@ -111,7 +182,7 @@ const BookGeneration = () => {
                 <div key={book.usageId} className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex-1">
                     <h3 className="font-medium">
-                      {book.bookData?.book_metadata?.title || book.requestData?.concept || `Book ${index + 1}`}
+                      {book.bookData?.book_metadata?.title || book.requestData?.concept?.substring(0, 50) || `Book ${index + 1}`}
                     </h3>
                     <div className="text-sm text-muted-foreground mt-1">
                       {book.bookData?.book_metadata?.total_chapters} chapters • 
@@ -120,14 +191,6 @@ const BookGeneration = () => {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => viewStoredBook(book.usageId)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      View
-                    </Button>
                     <Button
                       size="sm"
                       onClick={() => downloadPDF(book.usageId, book.bookData?.book_metadata?.title || 'book')}
@@ -142,144 +205,6 @@ const BookGeneration = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* Streaming Generation Modal */}
-      <Dialog open={showStreamingModal} onOpenChange={setShowStreamingModal}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle>Generating Your Book</DialogTitle>
-          </DialogHeader>
-          <div className="overflow-auto max-h-[80vh]">
-            {generationRequestData && (
-              <StreamingBookGenerator
-                requestData={generationRequestData}
-                onComplete={handleGenerationComplete}
-                onError={handleGenerationError}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Book Viewer Modal */}
-      <Dialog open={!!viewingBook} onOpenChange={() => setViewingBook(null)}>
-        <DialogContent className="max-w-7xl max-h-[90vh] overflow-hidden">
-          <DialogHeader>
-            <DialogTitle className="flex items-center justify-between">
-              <span>{viewingBook?.bookData?.book_metadata?.title || 'Book Viewer'}</span>
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  onClick={() => viewingBook && downloadPDF(
-                    viewingBook.usageId, 
-                    viewingBook.bookData?.book_metadata?.title || 'book'
-                  )}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
-                </Button>
-              </div>
-            </DialogTitle>
-          </DialogHeader>
-          <div className="overflow-auto max-h-[80vh]">
-            {viewingBook?.bookData?.full_book_content && (
-              <div className="space-y-6">
-                {/* Book Metadata */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
-                  <div className="text-center">
-                    <div className="font-bold text-lg">{viewingBook.bookData.book_metadata.total_chapters}</div>
-                    <div className="text-sm text-muted-foreground">Chapters</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-lg">{viewingBook.bookData.book_metadata.total_words}</div>
-                    <div className="text-sm text-muted-foreground">Words</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-lg">{viewingBook.bookData.book_metadata.total_images}</div>
-                    <div className="text-sm text-muted-foreground">Images</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="font-bold text-lg">{viewingBook.bookData.book_metadata.total_pages}</div>
-                    <div className="text-sm text-muted-foreground">Pages</div>
-                  </div>
-                </div>
-
-                {/* PDF-like Display */}
-                <div className="bg-white border rounded-lg shadow-inner p-8" style={{
-                  fontFamily: 'Times, serif',
-                  lineHeight: '1.6',
-                  color: '#333'
-                }}>
-                  {/* Title Page */}
-                  <div className="text-center py-16 border-b mb-8">
-                    <h1 className="text-4xl font-bold mb-4">{viewingBook.bookData.book_metadata.title}</h1>
-                    <p className="text-xl text-muted-foreground">by {viewingBook.bookData.book_metadata.author}</p>
-                  </div>
-
-                  {/* Table of Contents */}
-                  {viewingBook.bookData.table_of_contents && (
-                    <div className="mb-8 pb-8 border-b">
-                      <h2 className="text-2xl font-bold mb-4">Table of Contents</h2>
-                      <div className="space-y-2">
-                        {viewingBook.bookData.table_of_contents.map((item: any, index: number) => (
-                          <div key={index} className="flex justify-between">
-                            <span>{item.title}</span>
-                            <span>{item.page}</span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Chapters */}
-                  {viewingBook.bookData.full_book_content.chapters?.map((chapter: any) => (
-                    <div key={chapter.chapter_number} className="mb-8 pb-8 border-b">
-                      <h2 className="text-2xl font-bold mb-4">{chapter.title}</h2>
-                      <div className="prose prose-sm max-w-none">
-                        {chapter.content.split('\n').map((paragraph: string, idx: number) => {
-                          if (paragraph.trim().startsWith('##')) {
-                            return (
-                              <h3 key={idx} className="text-lg font-semibold mt-6 mb-3">
-                                {paragraph.replace('##', '').trim()}
-                              </h3>
-                            );
-                          } else if (paragraph.trim()) {
-                            return (
-                              <p key={idx} className="mb-4">
-                                {paragraph.trim()}
-                              </p>
-                            );
-                          }
-                          return null;
-                        })}
-                      </div>
-
-                      {/* Chapter Images */}
-                      {chapter.images && chapter.images.length > 0 && (
-                        <div className="space-y-4 mt-6">
-                          {chapter.images.map((image: any, idx: number) => (
-                            <div key={idx} className="text-center">
-                              <img 
-                                src={image.data} 
-                                alt={image.caption}
-                                className="max-w-full h-auto mx-auto rounded-lg shadow-sm"
-                                style={{ maxHeight: '300px' }}
-                              />
-                              <p className="text-sm text-muted-foreground mt-2 italic">
-                                {image.caption}
-                              </p>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
