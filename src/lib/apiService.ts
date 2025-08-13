@@ -201,39 +201,106 @@ class APIService {
     return this.getAllModels({ category, status: 'active' });
   }
 
-  // Long-form book generation with streaming
-  async generateLongFormBookStream(requestData: any): Promise<ReadableStream> {
+  // Long-form book generation with Server-Sent Events streaming
+  async generateLongFormBookStream(requestData: any): Promise<EventSource> {
     const url = `${API_BASE_URL}/api/ai/long-form-book/generate-stream`;
 
-    const defaultHeaders = {
-      'Content-Type': 'application/json',
-    };
+    // For EventSource, we need to send data via URL params for GET or use POST differently
+    // Let's create a EventSource that handles POST data
+    return new Promise((resolve, reject) => {
+      try {
+        // First, make the POST request to start the stream
+        const defaultHeaders = {
+          'Content-Type': 'application/json',
+        };
 
-    // Add auth token if available
-    try {
-      const token = tokenManager.getToken();
-      if (token && tokenManager.isTokenValid(token)) {
-        defaultHeaders['Authorization'] = `Bearer ${token}`;
+        // Add auth token if available
+        try {
+          const token = tokenManager.getToken();
+          if (token && tokenManager.isTokenValid(token)) {
+            defaultHeaders['Authorization'] = `Bearer ${token}`;
+          }
+        } catch (error) {
+          console.warn('Could not access localStorage for auth token:', error);
+        }
+
+        fetch(url, {
+          method: 'POST',
+          headers: defaultHeaders,
+          body: JSON.stringify(requestData),
+        }).then(response => {
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          // For Server-Sent Events, we return the response object with a custom reader
+          const customEventSource = {
+            onmessage: null as ((event: MessageEvent) => void) | null,
+            onerror: null as ((event: Event) => void) | null,
+            onopen: null as ((event: Event) => void) | null,
+            close: () => {},
+            readyState: 1,
+            url: url,
+            withCredentials: false,
+            CONNECTING: 0,
+            OPEN: 1,
+            CLOSED: 2,
+            addEventListener: (type: string, listener: EventListener) => {},
+            removeEventListener: (type: string, listener: EventListener) => {},
+            dispatchEvent: (event: Event) => false
+          };
+
+          // Start reading the stream
+          if (response.body) {
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+
+            const readStream = async () => {
+              try {
+                while (true) {
+                  const { done, value } = await reader.read();
+
+                  if (done) break;
+
+                  buffer += decoder.decode(value, { stream: true });
+                  const lines = buffer.split('\n');
+                  buffer = lines.pop() || '';
+
+                  for (const line of lines) {
+                    if (line.startsWith('event:')) {
+                      const eventType = line.substring(6).trim();
+                    } else if (line.startsWith('data:')) {
+                      const data = line.substring(5).trim();
+
+                      if (customEventSource.onmessage) {
+                        const event = new MessageEvent('message', {
+                          data: data,
+                          lastEventId: '',
+                          origin: url,
+                          source: null
+                        });
+                        customEventSource.onmessage(event);
+                      }
+                    }
+                  }
+                }
+              } catch (error) {
+                if (customEventSource.onerror) {
+                  customEventSource.onerror(new Event('error'));
+                }
+              }
+            };
+
+            readStream();
+          }
+
+          resolve(customEventSource as any);
+        }).catch(reject);
+      } catch (error) {
+        reject(error);
       }
-    } catch (error) {
-      console.warn('Could not access localStorage for auth token:', error);
-    }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: defaultHeaders,
-      body: JSON.stringify(requestData),
     });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    if (!response.body) {
-      throw new Error('No response body for streaming');
-    }
-
-    return response.body;
   }
 
   // Legacy book generation (non-streaming)
