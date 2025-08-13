@@ -301,8 +301,13 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
   }, [toast, onComplete, onError, bookMetadata, chapters, tableOfContents]);
 
   const startGeneration = useCallback(async () => {
-    if (isGenerating) return;
+    // Prevent multiple simultaneous requests
+    if (isGenerating || streamHandler.current) {
+      console.log('⚠️ Generation already in progress, skipping request');
+      return;
+    }
 
+    console.log('🚀 Starting book generation...');
     setIsGenerating(true);
     setProgress(0);
     setCurrentMessage('Initializing...');
@@ -315,14 +320,15 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
 
     try {
       streamHandler.current = createStreamHandler();
-      
+
       await streamHandler.current.startStream(requestData, {
         onMessage: processStreamEvent,
         onError: (error) => {
           console.error('❌ Streaming error:', error);
           setCurrentMessage(`Error: ${error.message}`);
           setIsGenerating(false);
-          
+          streamHandler.current = null; // Clear handler on error
+
           if (onError) {
             onError(error.message);
           }
@@ -330,6 +336,7 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
         onComplete: () => {
           console.log('✅ Stream completed');
           setIsGenerating(false);
+          streamHandler.current = null; // Clear handler on completion
         }
       });
 
@@ -337,12 +344,13 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
       console.error('❌ Streaming error:', error);
       setCurrentMessage(`Error: ${error.message}`);
       setIsGenerating(false);
-      
+      streamHandler.current = null; // Clear handler on error
+
       if (onError) {
         onError(error.message);
       }
     }
-  }, [isGenerating, requestData, processStreamEvent, onError]);
+  }, [requestData, processStreamEvent, onError]); // Remove isGenerating from dependencies
 
   const stopGeneration = useCallback(() => {
     if (streamHandler.current) {
