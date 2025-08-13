@@ -410,11 +410,11 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
     if (!resumeState) {
       startGeneration();
     }
-    
+
     return () => {
       stopGeneration();
     };
-  }, [startGeneration, resumeState]);
+  }, [resumeState]); // Remove startGeneration from dependencies to prevent infinite loops
 
   if (showCreditError) {
     return (
