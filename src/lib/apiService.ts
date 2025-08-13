@@ -200,6 +200,59 @@ class APIService {
   async getModelsByCategory(category: string): Promise<APIResponse<PaginatedResponse<AIModel>>> {
     return this.getAllModels({ category, status: 'active' });
   }
+
+  // Long-form book generation
+  async generateLongFormBook(requestData: any): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/long-form-book/generate', {
+      method: 'POST',
+      body: JSON.stringify(requestData),
+    });
+  }
+
+  // Get book generation settings
+  async getBookSettings(): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/long-form-book/settings');
+  }
+
+  // Get full book content by usage ID
+  async getBookContent(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/${usageId}/content`);
+  }
+
+  // Create usage record
+  async createUsageRecord(usageData: any): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/usage', {
+      method: 'POST',
+      body: JSON.stringify(usageData),
+    });
+  }
+
+  // Get usage history
+  async getUserUsageHistory(params: {
+    ai_model_slug?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<APIResponse<any>> {
+    const searchParams = new URLSearchParams();
+
+    if (params.ai_model_slug) searchParams.append('ai_model_slug', params.ai_model_slug);
+    if (params.status) searchParams.append('status', params.status);
+    if (params.limit) searchParams.append('limit', params.limit.toString());
+    if (params.offset) searchParams.append('offset', params.offset.toString());
+
+    return this.makeRequest<any>(`/api/ai/usage/history?${searchParams.toString()}`);
+  }
+
+  // Get usage detail
+  async getUsageDetail(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/usage/${usageId}`);
+  }
+
+  // Get usage statistics
+  async getUsageStats(): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/usage/stats');
+  }
 }
 
 export const apiService = new APIService();
