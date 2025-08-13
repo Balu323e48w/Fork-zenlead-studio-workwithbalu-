@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { apiService } from "@/lib/apiService";
 import { useToast } from "@/hooks/use-toast";
@@ -376,49 +375,23 @@ const DynamicFormGenerator: React.FC<DynamicFormGeneratorProps> = ({
         <Card key={section.title}>
           <CardHeader>
             {section.collapsible ? (
-              <Collapsible
-                open={expandedSections[section.title]}
-                onOpenChange={() => toggleSection(section.title)}
+              <div 
+                className="flex items-center cursor-pointer"
+                onClick={() => toggleSection(section.title)}
               >
-                <CollapsibleTrigger asChild>
-                  <div className="flex items-center cursor-pointer">
-                    {expandedSections[section.title] ? (
-                      <ChevronDown className="h-4 w-4 mr-2" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 mr-2" />
-                    )}
-                    <CardTitle>{section.title}</CardTitle>
-                  </div>
-                </CollapsibleTrigger>
-              </Collapsible>
+                {expandedSections[section.title] ? (
+                  <ChevronDown className="h-4 w-4 mr-2" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 mr-2" />
+                )}
+                <CardTitle>{section.title}</CardTitle>
+              </div>
             ) : (
               <CardTitle>{section.title}</CardTitle>
             )}
           </CardHeader>
           
-          {section.collapsible ? (
-            <Collapsible
-              open={expandedSections[section.title]}
-              onOpenChange={() => toggleSection(section.title)}
-            >
-              <CollapsibleContent>
-                <CardContent className="space-y-4">
-                  {section.fields.map((fieldPath) => {
-                    const fieldConfig = flattenedSchema[fieldPath];
-                    if (!fieldConfig) {
-                      console.warn(`Field config not found for: ${fieldPath}`);
-                      return null;
-                    }
-                    return (
-                      <div key={fieldPath}>
-                        {renderField(fieldPath, fieldConfig)}
-                      </div>
-                    );
-                  })}
-                </CardContent>
-              </CollapsibleContent>
-            </Collapsible>
-          ) : (
+          {(!section.collapsible || expandedSections[section.title]) && (
             <CardContent className="space-y-4">
               {section.fields.map((fieldPath) => {
                 const fieldConfig = flattenedSchema[fieldPath];
