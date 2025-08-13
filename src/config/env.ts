@@ -4,14 +4,18 @@ export const config = {
   API_BASE_URL: (() => {
     // Try different ways to get the API URL based on environment
     if (typeof import.meta !== 'undefined' && import.meta.env) {
+      // In development with Vite proxy, use relative paths
+      if (import.meta.env.DEV) {
+        return ''; // Empty string for relative paths that will be proxied
+      }
       return import.meta.env.VITE_API_URL || 'http://localhost:8000';
     }
-    
+
     // Fallback for different environments
     if (typeof window !== 'undefined' && (window as any).__API_URL__) {
       return (window as any).__API_URL__;
     }
-    
+
     // Default fallback
     return 'http://localhost:8000';
   })(),
