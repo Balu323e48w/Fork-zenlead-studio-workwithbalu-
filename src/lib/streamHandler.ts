@@ -66,6 +66,7 @@ export class SSEStreamHandler {
           if (handlers.onComplete) {
             handlers.onComplete();
           }
+          this.isStreaming = false; // Reset streaming flag on completion
           break;
         }
 
