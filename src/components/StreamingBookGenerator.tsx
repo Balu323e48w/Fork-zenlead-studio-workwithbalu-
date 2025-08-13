@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Book, 
   Download, 
@@ -12,7 +13,10 @@ import {
   Image as ImageIcon, 
   CheckCircle, 
   Clock,
-  Loader2
+  Loader2,
+  CreditCard,
+  AlertTriangle,
+  X
 } from "lucide-react";
 import { apiService } from "@/lib/apiService";
 import { useToast } from "@/hooks/use-toast";
@@ -24,8 +28,12 @@ interface StreamEvent {
   data?: any;
   chapter_number?: number;
   error?: string;
+  error_code?: string;
   book_data?: any;
   usage_id?: string;
+  credits_required?: number;
+  credits_available?: number;
+  credits_needed?: number;
 }
 
 interface Chapter {
@@ -54,12 +62,14 @@ interface StreamingBookGeneratorProps {
   requestData: any;
   onComplete?: (usageId: string, bookData: any) => void;
   onError?: (error: string) => void;
+  onCancel?: () => void;
 }
 
 const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
   requestData,
   onComplete,
-  onError
+  onError,
+  onCancel
 }) => {
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
@@ -71,6 +81,8 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
   const [generationComplete, setGenerationComplete] = useState(false);
   const [usageId, setUsageId] = useState<string>('');
   const [pdfBase64, setPdfBase64] = useState<string>('');
+  const [showCreditError, setShowCreditError] = useState(false);
+  const [creditErrorInfo, setCreditErrorInfo] = useState<any>(null);
   const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -95,6 +107,12 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
         if (event.data?.book_title) {
           setBookMetadata(prev => prev ? { ...prev, title: event.data.book_title } : null);
         }
+        break;
+
+      case 'credits_deducted':
+        setCurrentMessage(event.message || 'Credits deducted successfully...');
+        setUsageId(event.usage_id || '');
+        setProgress(5);
         break;
 
       case 'progress':
@@ -165,17 +183,14 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
         setGenerationComplete(true);
         
         if (event.book_data) {
-          // Update final metadata
           if (event.book_data.metadata) {
             setBookMetadata(event.book_data.metadata);
           }
           
-          // Store PDF
           if (event.book_data.pdf_base64) {
             setPdfBase64(event.book_data.pdf_base64);
           }
 
-          // Update table of contents
           if (event.book_data.table_of_contents) {
             setTableOfContents(event.book_data.table_of_contents);
           }
@@ -197,13 +212,24 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
         break;
 
       case 'error':
-        console.error('❌ Stream error:', event.error);
-        setCurrentMessage(`Error: ${event.message || event.error || 'Unknown error'}`);
-        toast({
-          title: "Error",
-          description: event.message || event.error || 'Failed to generate book',
-          variant: "destructive"
-        });
+        console.error('❌ Stream error:', event);
+        
+        if (event.error_code === 'INSUFFICIENT_CREDITS') {
+          setShowCreditError(true);
+          setCreditErrorInfo({
+            credits_required: event.credits_required || 50,
+            credits_available: event.credits_available || 0,
+            credits_needed: event.credits_needed || 50
+          });
+          setCurrentMessage('Insufficient credits to generate book');
+        } else {
+          setCurrentMessage(`Error: ${event.message || event.error || 'Unknown error'}`);
+          toast({
+            title: "Error",
+            description: event.message || event.error || 'Failed to generate book',
+            variant: "destructive"
+          });
+        }
         
         if (onError) {
           onError(event.message || event.error || 'Unknown error');
@@ -225,6 +251,7 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
     setTableOfContents([]);
     setGenerationComplete(false);
     setPdfBase64('');
+    setShowCreditError(false);
 
     try {
       abortControllerRef.current = new AbortController();
@@ -244,13 +271,11 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
           break;
         }
 
-        // Decode and buffer the chunk
         const chunk = decoder.decode(value, { stream: true });
         buffer += chunk;
 
-        // Process complete lines (NDJSON format)
         const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+        buffer = lines.pop() || '';
 
         for (const line of lines) {
           const event = parseStreamChunk(line);
@@ -260,7 +285,6 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
         }
       }
 
-      // Process any remaining buffer
       if (buffer.trim()) {
         const event = parseStreamChunk(buffer);
         if (event) {
@@ -340,35 +364,59 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
     };
   }, [startGeneration]);
 
-  return (
-    <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Header with Progress */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Book className="h-6 w-6" />
-              <CardTitle>
-                {bookMetadata?.title || 'Generating Book...'}
-              </CardTitle>
+  if (showCreditError) {
+    return (
+      <div className="max-w-md mx-auto p-6">
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold mb-2">Insufficient Credits</h3>
+                <p className="text-sm mb-3">
+                  You need {creditErrorInfo?.credits_required} credits to generate this book, 
+                  but you only have {creditErrorInfo?.credits_available} credits available.
+                </p>
+                <div className="bg-red-100 p-3 rounded-md text-sm">
+                  <p><strong>Required:</strong> {creditErrorInfo?.credits_required} credits</p>
+                  <p><strong>Available:</strong> {creditErrorInfo?.credits_available} credits</p>
+                  <p><strong>Need to add:</strong> {creditErrorInfo?.credits_needed} credits</p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                <Button size="sm" onClick={() => window.open('/pricing', '_blank')}>
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  Recharge Credits
+                </Button>
+                <Button variant="outline" size="sm" onClick={onCancel}>
+                  <X className="h-4 w-4 mr-2" />
+                  Cancel
+                </Button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-full flex gap-6">
+      {/* Left Side - Progress & Status */}
+      <div className="w-80 flex-shrink-0 space-y-4">
+        {/* Progress Card */}
+        <Card>
+          <CardHeader className="pb-4">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Generation Progress</CardTitle>
               {isGenerating && (
                 <Button variant="outline" size="sm" onClick={stopGeneration}>
-                  Stop Generation
-                </Button>
-              )}
-              {generationComplete && pdfBase64 && (
-                <Button size="sm" onClick={downloadPDF}>
-                  <Download className="h-4 w-4 mr-2" />
-                  Download PDF
+                  Stop
                 </Button>
               )}
             </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="flex items-center gap-2">
               {isGenerating ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -377,39 +425,33 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
               ) : (
                 <Clock className="h-4 w-4" />
               )}
-              <span className="text-sm text-muted-foreground">{currentMessage}</span>
+              <span className="text-sm">{currentMessage}</span>
             </div>
             <Progress value={progress} className="w-full" />
-            <div className="flex items-center gap-4 text-sm text-muted-foreground">
-              <span>Progress: {progress}%</span>
-              {bookMetadata && (
-                <>
-                  <span>•</span>
-                  <span>Chapters: {chapters.length}/{bookMetadata.total_chapters}</span>
-                  <span>•</span>
-                  <span>Words: {bookMetadata.total_words}</span>
-                  <span>•</span>
-                  <span>Images: {bookMetadata.total_images}</span>
-                </>
-              )}
+            <div className="text-sm text-muted-foreground">
+              {progress}% Complete
             </div>
-          </div>
-        </CardContent>
-      </Card>
+            {bookMetadata && (
+              <div className="space-y-1 text-sm">
+                <div>Chapters: {chapters.length}/{bookMetadata.total_chapters}</div>
+                <div>Words: {bookMetadata.total_words}</div>
+                <div>Images: {bookMetadata.total_images}</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-      {/* PDF-like Book Display */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-        {/* Table of Contents Sidebar */}
+        {/* Table of Contents */}
         {tableOfContents.length > 0 && (
-          <Card className="lg:col-span-1">
-            <CardHeader>
+          <Card>
+            <CardHeader className="pb-4">
               <CardTitle className="text-sm">Table of Contents</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-96">
-                <div className="space-y-2">
+              <ScrollArea className="h-60">
+                <div className="space-y-1">
                   {tableOfContents.map((item, index) => (
-                    <div key={index} className="text-sm">
+                    <div key={index} className="text-sm p-2 rounded hover:bg-muted">
                       <div className="font-medium">{item.title}</div>
                       <div className="text-xs text-muted-foreground">Page {item.page}</div>
                     </div>
@@ -420,114 +462,154 @@ const StreamingBookGenerator: React.FC<StreamingBookGeneratorProps> = ({
           </Card>
         )}
 
-        {/* Main Content - PDF-like Display */}
-        <Card className={`${tableOfContents.length > 0 ? 'lg:col-span-3' : 'lg:col-span-4'}`}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Book Content
-              <Badge variant={generationComplete ? "default" : "secondary"}>
-                {chapters.filter(ch => ch.completed).length} / {bookMetadata?.total_chapters || 0} Chapters
-              </Badge>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="h-[600px]">
-              <div className="space-y-8 p-4 bg-white border rounded-lg shadow-inner min-h-[500px]" style={{
-                fontFamily: 'Times, serif',
-                lineHeight: '1.6',
-                color: '#333'
-              }}>
-                {/* Title Page */}
-                {bookMetadata && (
-                  <div className="text-center py-16 border-b">
-                    <h1 className="text-4xl font-bold mb-4">{bookMetadata.title}</h1>
-                    <p className="text-xl text-muted-foreground">by {bookMetadata.author}</p>
-                    <div className="mt-8 text-sm text-muted-foreground">
-                      {bookMetadata.total_chapters} Chapters • {bookMetadata.total_words} Words
+        {/* Actions */}
+        {generationComplete && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-2">
+                <Button className="w-full" onClick={downloadPDF} disabled={!pdfBase64}>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download PDF
+                </Button>
+                <div className="text-xs text-muted-foreground text-center">
+                  {usageId && `ID: ${usageId.slice(-8)}`}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Right Side - A4 PDF Viewer */}
+      <div className="flex-1 bg-gray-100 p-8 rounded-lg overflow-hidden">
+        <ScrollArea className="h-full">
+          {/* A4 Page Container */}
+          <div className="max-w-[210mm] mx-auto bg-white shadow-xl" style={{
+            minHeight: '297mm', // A4 height
+            padding: '20mm', // Standard page margins
+            fontFamily: 'Times, serif',
+            fontSize: '12pt',
+            lineHeight: '1.6',
+            color: '#000'
+          }}>
+            {/* Document Header */}
+            {bookMetadata && (
+              <div className="text-center pb-8 border-b-2 border-gray-300 mb-8">
+                <h1 className="text-3xl font-bold mb-4">{bookMetadata.title}</h1>
+                <p className="text-xl text-gray-600">by {bookMetadata.author}</p>
+                <div className="mt-6 text-sm text-gray-500">
+                  Generated with AI • {new Date().toLocaleDateString()}
+                </div>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {isGenerating && chapters.length === 0 && (
+              <div className="text-center py-20">
+                <Loader2 className="h-12 w-12 animate-spin mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-500">Generating your book...</p>
+                <p className="text-sm text-gray-400 mt-2">{currentMessage}</p>
+              </div>
+            )}
+
+            {/* Table of Contents */}
+            {tableOfContents.length > 0 && !isGenerating && (
+              <div className="mb-12">
+                <h2 className="text-2xl font-bold mb-6 text-center">Table of Contents</h2>
+                <div className="space-y-2">
+                  {tableOfContents.map((item, index) => (
+                    <div key={index} className="flex justify-between border-b border-dotted pb-1">
+                      <span>{item.title}</span>
+                      <span>{item.page}</span>
                     </div>
+                  ))}
+                </div>
+                <div className="page-break-after mt-12 border-b-4 border-gray-200"></div>
+              </div>
+            )}
+
+            {/* Chapters */}
+            {chapters.map((chapter, idx) => (
+              <div key={chapter.chapter_number} className={`mb-8 ${idx > 0 ? 'mt-12' : ''}`}>
+                {/* Chapter Header */}
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="text-2xl font-bold">{chapter.title}</h2>
+                  {chapter.completed ? (
+                    <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
+                  ) : (
+                    <Loader2 className="h-6 w-6 animate-spin text-gray-400 flex-shrink-0" />
+                  )}
+                </div>
+                
+                {/* Chapter Content */}
+                {chapter.content && (
+                  <div className="space-y-4">
+                    {chapter.content.split('\n').map((paragraph, pIdx) => {
+                      if (paragraph.trim().startsWith('##')) {
+                        return (
+                          <h3 key={pIdx} className="text-lg font-semibold mt-8 mb-4 text-gray-800">
+                            {paragraph.replace('##', '').trim()}
+                          </h3>
+                        );
+                      } else if (paragraph.trim()) {
+                        return (
+                          <p key={pIdx} className="mb-4 text-justify">
+                            {paragraph.trim()}
+                          </p>
+                        );
+                      }
+                      return <div key={pIdx} className="h-4"></div>;
+                    })}
                   </div>
                 )}
 
-                {/* Chapters */}
-                {chapters.map((chapter) => (
-                  <div key={chapter.chapter_number} className="space-y-4 pb-8 border-b">
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-2xl font-bold">{chapter.title}</h2>
-                      {chapter.completed ? (
-                        <CheckCircle className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-                      )}
-                    </div>
-                    
-                    {chapter.content && (
-                      <div className="prose prose-sm max-w-none">
-                        {chapter.content.split('\n').map((paragraph, idx) => {
-                          if (paragraph.trim().startsWith('##')) {
-                            return (
-                              <h3 key={idx} className="text-lg font-semibold mt-6 mb-3">
-                                {paragraph.replace('##', '').trim()}
-                              </h3>
-                            );
-                          } else if (paragraph.trim()) {
-                            return (
-                              <p key={idx} className="mb-4">
-                                {paragraph.trim()}
-                              </p>
-                            );
-                          }
-                          return null;
-                        })}
+                {/* Chapter Images */}
+                {chapter.images.length > 0 && (
+                  <div className="space-y-6 mt-8">
+                    {chapter.images.map((image, imgIdx) => (
+                      <div key={imgIdx} className="text-center">
+                        <img 
+                          src={image.data} 
+                          alt={image.caption}
+                          className="max-w-full h-auto mx-auto border border-gray-200 rounded"
+                          style={{ maxHeight: '400px' }}
+                        />
+                        <p className="text-sm text-gray-600 mt-2 italic">
+                          Figure {imgIdx + 1}: {image.caption}
+                        </p>
                       </div>
-                    )}
-
-                    {/* Chapter Images */}
-                    {chapter.images.length > 0 && (
-                      <div className="space-y-4">
-                        {chapter.images.map((image, idx) => (
-                          <div key={idx} className="text-center">
-                            <img 
-                              src={image.data} 
-                              alt={image.caption}
-                              className="max-w-full h-auto mx-auto rounded-lg shadow-sm"
-                              style={{ maxHeight: '300px' }}
-                            />
-                            <p className="text-sm text-muted-foreground mt-2 italic">
-                              {image.caption}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground pt-2">
-                      <span>{chapter.word_count} words</span>
-                      {chapter.images.length > 0 && (
-                        <>
-                          <span>•</span>
-                          <span className="flex items-center gap-1">
-                            <ImageIcon className="h-3 w-3" />
-                            {chapter.images.length} images
-                          </span>
-                        </>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))}
+                )}
 
-                {/* Generation Status */}
-                {isGenerating && chapters.length === 0 && (
-                  <div className="text-center py-16 text-muted-foreground">
-                    <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-                    <p>Generating your book...</p>
-                    <p className="text-sm mt-2">{currentMessage}</p>
-                  </div>
+                {/* Chapter Footer */}
+                <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200 text-xs text-gray-500">
+                  <span>{chapter.word_count} words</span>
+                  {chapter.images.length > 0 && (
+                    <span className="flex items-center gap-1">
+                      <ImageIcon className="h-3 w-3" />
+                      {chapter.images.length} images
+                    </span>
+                  )}
+                </div>
+
+                {/* Page Break After Each Chapter */}
+                {idx < chapters.length - 1 && (
+                  <div className="page-break-after mt-12 border-b-4 border-gray-200"></div>
                 )}
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
+            ))}
+
+            {/* Generation Status at Bottom */}
+            {isGenerating && chapters.length > 0 && (
+              <div className="text-center py-8 text-gray-500 border-t border-gray-200">
+                <Loader2 className="h-6 w-6 animate-spin mx-auto mb-2" />
+                <p>{currentMessage}</p>
+                <Progress value={progress} className="w-64 mx-auto mt-4" />
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </div>
     </div>
   );
