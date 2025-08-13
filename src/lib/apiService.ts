@@ -253,6 +253,20 @@ class APIService {
   async getUsageStats(): Promise<APIResponse<any>> {
     return this.makeRequest<any>('/api/ai/usage/stats');
   }
+
+  // Resume Analysis
+  async analyzeResume(formData: FormData): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/resume-analyzer/analyze', {
+      method: 'POST',
+      body: formData,
+      headers: {} // Let browser set Content-Type for FormData
+    });
+  }
+
+  // Get resume analyzer settings
+  async getResumeAnalyzerSettings(): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/resume-analyzer/settings');
+  }
 }
 
 export const apiService = new APIService();
