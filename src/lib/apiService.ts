@@ -267,6 +267,32 @@ class APIService {
   async getResumeAnalyzerSettings(): Promise<APIResponse<any>> {
     return this.makeRequest<any>('/api/ai/resume-analyzer/settings');
   }
+
+  // Dynamic AI Model Settings
+  async getModelSettings(modelSlug: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/models/${modelSlug}/settings`);
+  }
+
+  // Get all model settings
+  async getAllModelSettings(): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/models/settings/all');
+  }
+
+  // Validate user input against model schema
+  async validateUserInput(modelSlug: string, userInput: any): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/models/${modelSlug}/validate`, {
+      method: 'POST',
+      body: JSON.stringify(userInput),
+    });
+  }
+
+  // Update model settings (admin)
+  async updateModelSettings(modelSlug: string, settingsData: any): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/admin/models/${modelSlug}/settings`, {
+      method: 'PUT',
+      body: JSON.stringify(settingsData),
+    });
+  }
 }
 
 export const apiService = new APIService();
