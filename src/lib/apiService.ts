@@ -201,7 +201,42 @@ class APIService {
     return this.getAllModels({ category, status: 'active' });
   }
 
-  // Long-form book generation
+  // Long-form book generation with streaming
+  async generateLongFormBookStream(requestData: any): Promise<ReadableStream> {
+    const url = `${API_BASE_URL}/api/ai/long-form-book/generate-stream`;
+
+    const defaultHeaders = {
+      'Content-Type': 'application/json',
+    };
+
+    // Add auth token if available
+    try {
+      const token = tokenManager.getToken();
+      if (token && tokenManager.isTokenValid(token)) {
+        defaultHeaders['Authorization'] = `Bearer ${token}`;
+      }
+    } catch (error) {
+      console.warn('Could not access localStorage for auth token:', error);
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: defaultHeaders,
+      body: JSON.stringify(requestData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    if (!response.body) {
+      throw new Error('No response body for streaming');
+    }
+
+    return response.body;
+  }
+
+  // Legacy book generation (non-streaming)
   async generateLongFormBook(requestData: any): Promise<APIResponse<any>> {
     return this.makeRequest<any>('/api/ai/long-form-book/generate', {
       method: 'POST',
@@ -209,12 +244,22 @@ class APIService {
     });
   }
 
+  // Get complete stored book
+  async getStoredBook(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/${usageId}/stored`);
+  }
+
+  // Get book PDF for download
+  async getBookPDF(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/${usageId}/pdf`);
+  }
+
   // Get book generation settings
   async getBookSettings(): Promise<APIResponse<any>> {
     return this.makeRequest<any>('/api/ai/long-form-book/settings');
   }
 
-  // Get full book content by usage ID
+  // Get full book content by usage ID (legacy)
   async getBookContent(usageId: string): Promise<APIResponse<any>> {
     return this.makeRequest<any>(`/api/ai/long-form-book/${usageId}/content`);
   }
