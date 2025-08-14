@@ -170,6 +170,54 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
     saveCurrentState();
   }, [saveCurrentState]);
 
+  // Initialize network recovery when usageId is available
+  useEffect(() => {
+    if (usageId && !recoveryManager.current) {
+      recoveryManager.current = new BookGenerationRecovery(usageId);
+      recoveryManager.current.startMonitoring();
+
+      console.log('🔄 Network recovery initialized for:', usageId);
+    }
+
+    return () => {
+      if (recoveryManager.current) {
+        recoveryManager.current.stopMonitoring();
+      }
+    };
+  }, [usageId]);
+
+  // Auto-save progress periodically
+  useEffect(() => {
+    if (usageId && autoSaveEnabled && recoveryManager.current &&
+        (isGenerating || chapters.length > 0)) {
+
+      const autoSaveInterval = setInterval(() => {
+        const progressData = {
+          usageId,
+          requestData,
+          status: generationComplete ? 'completed' : isGenerating ? 'generating' : 'paused',
+          progress,
+          currentMessage,
+          chapters,
+          bookMetadata,
+          tableOfContents,
+          generationComplete,
+          startTime: startTime.current,
+          isPaused,
+          pauseReason
+        };
+
+        recoveryManager.current?.saveProgress(progressData);
+        setLastSaveTime(new Date());
+
+        console.log('💾 Auto-saved progress');
+      }, 30000); // Auto-save every 30 seconds
+
+      return () => clearInterval(autoSaveInterval);
+    }
+  }, [usageId, autoSaveEnabled, isGenerating, progress, chapters, bookMetadata,
+      tableOfContents, generationComplete, requestData, currentMessage, isPaused, pauseReason]);
+
   const processStreamEvent = useCallback((event: StreamEvent) => {
     console.log('📡 Stream event:', event);
 
