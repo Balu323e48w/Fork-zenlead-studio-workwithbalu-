@@ -54,6 +54,8 @@ interface Chapter {
     source: string;
   }>;
   completed: boolean;
+  sections?: string[];
+  formatted_content?: string;
 }
 
 interface BookMetadata {
