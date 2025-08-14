@@ -89,6 +89,8 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [canPause, setCanPause] = useState(false);
+  const [pauseReason, setPauseReason] = useState<string>('');
   const [progress, setProgress] = useState(0);
   const [currentMessage, setCurrentMessage] = useState('');
   const [chapters, setChapters] = useState<Chapter[]>([]);
