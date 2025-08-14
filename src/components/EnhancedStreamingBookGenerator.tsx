@@ -255,6 +255,12 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
   const processStreamEvent = useCallback((event: StreamEvent) => {
     console.log('📡 Stream event:', event);
 
+    // Track event for network recovery
+    if (recoveryManager.current && event.type) {
+      const eventId = `${event.type}_${Date.now()}`;
+      recoveryManager.current.updateLastEvent(eventId);
+    }
+
     switch (event.type) {
       case 'start':
         setCurrentMessage(event.message || 'Starting generation...');
