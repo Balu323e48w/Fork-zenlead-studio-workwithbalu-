@@ -197,14 +197,15 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
           setChapters(prev => {
             const updated = [...prev];
             const existingIndex = updated.findIndex(ch => ch.chapter_number === event.chapter_number);
-            
+
             const newChapter: Chapter = {
               chapter_number: event.chapter_number!,
               title: event.title || '',
-              content: event.content_preview || '',
+              content: event.full_content || event.content || event.content_preview || '', // Use FULL content first
               word_count: event.word_count || 0,
-              images: [],
-              completed: true
+              images: event.images || [], // Include images from backend
+              completed: true,
+              sections: event.sections || []
             };
 
             if (existingIndex >= 0) {
