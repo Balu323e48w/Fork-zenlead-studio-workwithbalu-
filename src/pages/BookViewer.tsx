@@ -43,6 +43,12 @@ interface GenerationState {
   shareable_url: string;
   last_heartbeat?: string;
   has_recovery_data: boolean;
+  // Enhanced fields from new backend
+  current_operation?: string;
+  estimated_completion?: string;
+  book_context?: any;
+  live_data?: any;
+  recovery_info?: any;
 }
 
 interface BookData {
