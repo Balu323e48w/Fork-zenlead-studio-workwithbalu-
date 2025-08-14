@@ -715,6 +715,12 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
     return () => {
       console.log('🧹 Cleanup: stopping generation');
       stopGeneration();
+
+      // Cleanup recovery manager
+      if (recoveryManager.current) {
+        recoveryManager.current.cleanup();
+        recoveryManager.current = null;
+      }
     };
   }, [resumeState]); // Only depend on resumeState to prevent infinite loops
 
