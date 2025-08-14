@@ -38,6 +38,7 @@ import Profile from "./pages/Profile";
 import AuthCallback from "./pages/AuthCallback";
 import BookProjects from "./pages/BookProjects";
 import BookViewer from "./pages/BookViewer";
+import EnhancedBookViewer from "./pages/EnhancedBookViewer";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute, { AuthenticatedRoute, UnauthenticatedRoute } from "./components/ProtectedRoute";
 import AuthMessage from "./components/AuthMessage";
