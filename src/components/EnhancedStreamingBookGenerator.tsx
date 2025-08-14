@@ -6,12 +6,12 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Book, 
-  Download, 
-  FileText, 
-  Image as ImageIcon, 
-  CheckCircle, 
+import {
+  Book,
+  Download,
+  FileText,
+  Image as ImageIcon,
+  CheckCircle,
   Clock,
   Loader2,
   CreditCard,
@@ -21,12 +21,15 @@ import {
   Pause,
   Play,
   ArrowLeft,
-  Save
+  Save,
+  Eye,
+  BookOpen
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { SSEStreamHandler, createStreamHandler } from "@/lib/streamHandler";
 import { PDFGenerator } from "@/lib/pdfGenerator";
 import { BookGenerationStateManager, BookGenerationUtils } from "@/lib/bookGenerationState";
+import { BookContentRenderer } from "@/components/BookContentRenderer";
 
 interface StreamEvent {
   type: string;
