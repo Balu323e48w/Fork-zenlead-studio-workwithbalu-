@@ -7,12 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { 
-  Book, 
-  Plus, 
+import {
+  Book,
+  Plus,
   Sparkles,
   BarChart3,
-  Template,
+  FileText,
   Loader2,
   CreditCard,
   AlertTriangle
@@ -182,7 +182,7 @@ const BookProjects: React.FC = () => {
               Dashboard
             </TabsTrigger>
             <TabsTrigger value="templates" className="flex items-center gap-2">
-              <Template className="h-4 w-4" />
+              <FileText className="h-4 w-4" />
               Templates
             </TabsTrigger>
             <TabsTrigger value="projects" className="flex items-center gap-2">
