@@ -219,6 +219,24 @@ const App = () => {
                   }
                 />
 
+                {/* Book Projects Routes */}
+                <Route
+                  path="/book-projects"
+                  element={
+                    <AuthenticatedRoute>
+                      <BookProjects />
+                    </AuthenticatedRoute>
+                  }
+                />
+                <Route
+                  path="/book-generation/:urlSlug"
+                  element={
+                    <AuthenticatedRoute>
+                      <BookViewer />
+                    </AuthenticatedRoute>
+                  }
+                />
+
                 {/* Catch-all route - redirect internal routes to dashboard, others to 404 */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
