@@ -106,6 +106,11 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
   
   const streamHandler = useRef<SSEStreamHandler | null>(null);
   const startTime = useRef<number>(Date.now());
+  const recoveryManager = useRef<BookGenerationRecovery | null>(null);
+
+  const [isOffline, setIsOffline] = useState(false);
+  const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(true);
 
   // Initialize from resume state if available
   useEffect(() => {
