@@ -30,6 +30,7 @@ import { SSEStreamHandler, createStreamHandler } from "@/lib/streamHandler";
 import { PDFGenerator } from "@/lib/pdfGenerator";
 import { BookGenerationStateManager, BookGenerationUtils } from "@/lib/bookGenerationState";
 import { BookContentRenderer } from "@/components/BookContentRenderer";
+import { BookApiService } from "@/lib/bookApi";
 
 interface StreamEvent {
   type: string;
