@@ -762,6 +762,16 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
             <span className="font-medium">
               {bookMetadata?.title || 'Generating Book...'}
             </span>
+            {isOffline && (
+              <Badge variant="destructive" className="text-xs">
+                Offline
+              </Badge>
+            )}
+            {lastSaveTime && (
+              <span className="text-xs text-muted-foreground">
+                Saved {lastSaveTime.toLocaleTimeString()}
+              </span>
+            )}
           </div>
         </div>
         
