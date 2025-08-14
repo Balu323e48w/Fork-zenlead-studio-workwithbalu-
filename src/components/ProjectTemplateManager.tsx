@@ -7,11 +7,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  BookTemplate, 
-  Copy, 
-  Star, 
-  Clock, 
+import {
+  FileText,
+  Copy,
+  Star,
+  Clock,
   ChevronRight,
   Plus,
   Tag,
@@ -329,7 +329,7 @@ const ProjectTemplateManager: React.FC<ProjectTemplateManagerProps> = ({
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-2">
-                    <BookTemplate className="h-5 w-5 text-primary" />
+                    <FileText className="h-5 w-5 text-primary" />
                     <CardTitle className="text-lg">{template.name}</CardTitle>
                   </div>
                   <div className="flex gap-1">
