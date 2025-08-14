@@ -643,68 +643,61 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
                     </div>
                   )}
 
-                  {/* Chapters */}
+                  {/* Comprehensive Chapters Display */}
                   {chapters.map((chapter, idx) => (
-                    <div key={chapter.chapter_number} className="mb-12">
-                      {/* Chapter Header */}
-                      <div className="flex items-center gap-3 mb-6">
-                        <div>
-                          <h2 className="text-2xl font-bold">{chapter.title}</h2>
-                          <div className="text-sm text-gray-500 mt-1">
-                            {chapter.word_count} words • {chapter.images.length} images
-                          </div>
-                        </div>
-                        {chapter.completed ? (
-                          <CheckCircle className="h-6 w-6 text-green-500 flex-shrink-0" />
-                        ) : (
-                          <Loader2 className="h-6 w-6 animate-spin text-gray-400 flex-shrink-0" />
-                        )}
-                      </div>
-                      
-                      {/* Chapter Content */}
-                      {chapter.content && (
-                        <div className="space-y-4 mb-6">
-                          {chapter.content.split('\n').map((paragraph, pIdx) => {
-                            if (paragraph.trim().startsWith('##')) {
-                              return (
-                                <h3 key={pIdx} className="text-lg font-semibold mt-6 mb-3 text-gray-800">
-                                  {paragraph.replace('##', '').trim()}
-                                </h3>
-                              );
-                            } else if (paragraph.trim()) {
-                              return (
-                                <p key={pIdx} className="mb-4 text-justify leading-relaxed">
-                                  {paragraph.trim()}
-                                </p>
-                              );
-                            }
-                            return <div key={pIdx} className="h-2"></div>;
-                          })}
-                        </div>
-                      )}
+                    <div key={chapter.chapter_number} className="mb-16">
+                      <BookContentRenderer
+                        content={chapter.content}
+                        images={chapter.images}
+                        title={chapter.title}
+                        chapterNumber={chapter.chapter_number}
+                        wordCount={chapter.word_count}
+                      />
 
-                      {/* Chapter Images */}
-                      {chapter.images.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                          {chapter.images.map((image, imgIdx) => (
-                            <div key={imgIdx} className="text-center">
-                              <img 
-                                src={image.data} 
-                                alt={image.caption}
-                                className="w-full h-auto mx-auto border rounded-lg shadow-sm"
-                                style={{ maxHeight: '300px', objectFit: 'cover' }}
-                              />
-                              <p className="text-sm text-gray-600 mt-2 italic">
-                                Figure {imgIdx + 1}: {image.caption}
-                              </p>
-                            </div>
-                          ))}
+                      {/* Chapter Status Indicator */}
+                      <div className="flex items-center justify-between mt-6 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          {chapter.completed ? (
+                            <CheckCircle className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <Loader2 className="h-5 w-5 animate-spin text-blue-500" />
+                          )}
+                          <span className="text-sm font-medium">
+                            {chapter.completed ? 'Chapter Complete' : 'Generating...'}
+                          </span>
                         </div>
-                      )}
+
+                        <div className="flex items-center gap-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-1">
+                            <BookOpen className="h-4 w-4" />
+                            {chapter.word_count.toLocaleString()} words
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <ImageIcon className="h-4 w-4" />
+                            {chapter.images.length} images
+                          </div>
+                          {chapter.sections && (
+                            <div className="flex items-center gap-1">
+                              <FileText className="h-4 w-4" />
+                              {chapter.sections.length} sections
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
                       {/* Chapter Separator */}
                       {idx < chapters.length - 1 && (
-                        <Separator className="mt-8" />
+                        <div className="mt-12">
+                          <Separator />
+                          <div className="text-center mt-6 mb-6">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full">
+                              <Book className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-medium text-blue-800">
+                                Chapter {chapter.chapter_number} of {bookMetadata?.total_chapters || chapters.length}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
                       )}
                     </div>
                   ))}
