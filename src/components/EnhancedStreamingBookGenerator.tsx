@@ -171,6 +171,8 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
       case 'start':
         setCurrentMessage(event.message || 'Starting generation...');
         setProgress(0);
+        setCanPause(true);
+        setIsPaused(false);
         break;
 
       case 'credits_deducted':
