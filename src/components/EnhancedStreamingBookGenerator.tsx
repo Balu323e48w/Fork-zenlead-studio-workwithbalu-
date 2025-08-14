@@ -31,6 +31,7 @@ import { PDFGenerator } from "@/lib/pdfGenerator";
 import { BookGenerationStateManager, BookGenerationUtils } from "@/lib/bookGenerationState";
 import { BookContentRenderer } from "@/components/BookContentRenderer";
 import { BookApiService } from "@/lib/bookApi";
+import { BookGenerationRecovery } from "@/lib/networkRecovery";
 
 interface StreamEvent {
   type: string;
