@@ -123,9 +123,43 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
       setTableOfContents(resumeState.tableOfContents || []);
       setGenerationComplete(resumeState.generationComplete);
       setIsGenerating(resumeState.status === 'generating');
+      setIsPaused(resumeState.status === 'paused');
       startTime.current = resumeState.startTime || Date.now();
     }
   }, [resumeState]);
+
+  // Attempt recovery from saved state if no resume state provided
+  useEffect(() => {
+    if (!resumeState && usageId && recoveryManager.current) {
+      const attemptRecovery = async () => {
+        try {
+          const recoveredState = await recoveryManager.current?.recoverState();
+
+          if (recoveredState) {
+            console.log('🔄 Recovered state from previous session');
+
+            setProgress(recoveredState.progress || 0);
+            setCurrentMessage(recoveredState.currentMessage || 'Recovered from previous session');
+            setChapters(recoveredState.chapters || []);
+            setBookMetadata(recoveredState.bookMetadata);
+            setTableOfContents(recoveredState.tableOfContents || []);
+            setGenerationComplete(recoveredState.generationComplete || false);
+            setIsPaused(recoveredState.status === 'paused');
+            startTime.current = recoveredState.startTime || Date.now();
+
+            toast({
+              title: "Session Recovered",
+              description: "Restored your previous progress",
+            });
+          }
+        } catch (error) {
+          console.warn('Recovery failed:', error);
+        }
+      };
+
+      attemptRecovery();
+    }
+  }, [usageId, resumeState, toast]);
 
   // Update estimated time remaining
   useEffect(() => {
