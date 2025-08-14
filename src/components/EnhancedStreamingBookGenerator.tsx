@@ -244,10 +244,37 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
         }
         break;
 
+      case 'paused':
+        setCurrentMessage('Generation paused successfully');
+        setIsPaused(true);
+        setIsGenerating(false);
+        setCanPause(false);
+        setPauseReason(event.reason || 'Paused by user');
+
+        toast({
+          title: "Paused",
+          description: "Generation paused. Your progress has been saved.",
+        });
+        break;
+
+      case 'resumed':
+        setCurrentMessage('Generation resumed');
+        setIsPaused(false);
+        setIsGenerating(true);
+        setCanPause(true);
+        setPauseReason('');
+
+        toast({
+          title: "Resumed",
+          description: "Generation resumed from saved checkpoint.",
+        });
+        break;
+
       case 'complete':
         setCurrentMessage('Book generation completed!');
         setProgress(100);
         setGenerationComplete(true);
+        setCanPause(false);
 
         if (event.book_data) {
           if (event.book_data.metadata) {
