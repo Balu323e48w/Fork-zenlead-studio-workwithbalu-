@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Book, Download, RefreshCw, ArrowLeft, AlertTriangle } from "lucide-react";
+import { Book, Download, RefreshCw, ArrowLeft, AlertTriangle, Sparkles } from "lucide-react";
 import { apiService } from "@/lib/apiService";
 import { useToast } from "@/hooks/use-toast";
 import DynamicFormGenerator from "@/components/DynamicFormGenerator";
@@ -11,24 +12,53 @@ import { BookGenerationUtils, BookGenerationStateManager } from "@/lib/bookGener
 
 const BookGeneration = () => {
   const { toast } = useToast();
+  const location = useLocation();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationRequestData, setGenerationRequestData] = useState<any>(null);
   const [generatedBooks, setGeneratedBooks] = useState<Array<{ usageId: string; bookData: any; requestData: any }>>([]);
   const [resumeState, setResumeState] = useState<any>(null);
   const [showResumeOption, setShowResumeOption] = useState(false);
+  const [templateSettings, setTemplateSettings] = useState<any>(null);
+  const [autoStartRequested, setAutoStartRequested] = useState(false);
+
+  // Handle template settings from navigation state
+  useEffect(() => {
+    const state = location.state as any;
+    if (state?.templateSettings) {
+      setTemplateSettings(state.templateSettings);
+
+      // If auto-start is requested, prepare for automatic generation
+      if (state.autoStart && !autoStartRequested) {
+        setAutoStartRequested(true);
+        toast({
+          title: "Quick Start",
+          description: "Template loaded. Starting book generation...",
+          duration: 3000,
+        });
+
+        // Small delay to let the form populate, then auto-start
+        setTimeout(() => {
+          handleGenerate(state.templateSettings);
+        }, 1000);
+      }
+    }
+  }, [location.state, autoStartRequested, toast]);
 
   // Check for active generation on component mount
   useEffect(() => {
+    // Skip if we're handling template auto-start
+    if (autoStartRequested) return;
+
     const activeGeneration = BookGenerationUtils.hasActiveGeneration();
-    
+
     if (activeGeneration.active) {
       const savedState = BookGenerationStateManager.loadState();
-      
+
       if (savedState) {
         // Check if generation might have timed out
         const twentyMinutes = 20 * 60 * 1000;
         const timeSinceStart = Date.now() - savedState.startTime;
-        
+
         if (timeSinceStart > twentyMinutes && savedState.status === 'generating') {
           // Offer to resume or start fresh
           setShowResumeOption(true);
@@ -41,7 +71,7 @@ const BookGeneration = () => {
         }
       }
     }
-  }, []);
+  }, [autoStartRequested]);
 
   const handleGenerate = async (validatedData: any) => {
     setGenerationRequestData(validatedData);
@@ -183,12 +213,34 @@ const BookGeneration = () => {
   // Default view - form and history
   return (
     <div className="space-y-8">
+      {/* Template Info Banner */}
+      {templateSettings && !autoStartRequested && (
+        <Card className="border-blue-200 bg-blue-50">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-blue-800">
+                  Template Loaded: {templateSettings.book_title || 'Professional Book Template'}
+                </p>
+                <p className="text-sm text-blue-700">
+                  Your form has been pre-filled with optimized settings. You can modify them or generate directly.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Dynamic Form */}
       <DynamicFormGenerator
         modelSlug="long-form-book"
         onSubmit={handleGenerate}
         isLoading={false}
         submitButtonText="Generate Long-Form Book"
+        initialValues={templateSettings}
       />
 
       {/* Generated Books History */}
