@@ -383,11 +383,76 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
     // Note: Actual resuming would need backend support
   }, []);
 
-  const exportToPDF = useCallback(async () => {
-    if (!bookMetadata || chapters.length === 0) {
+  const loadFullContent = useCallback(async () => {
+    if (!usageId) {
       toast({
         title: "Error",
-        description: "No content available to export",
+        description: "No usage ID available",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsExporting(true);
+    setCurrentMessage('Loading complete book content...');
+
+    try {
+      const storedBook = await BookApiService.getStoredBook(usageId);
+
+      if (storedBook.full_book_content && storedBook.full_book_content.chapters) {
+        // Update chapters with full content
+        const fullChapters = storedBook.full_book_content.chapters.map((ch: any) => ({
+          chapter_number: ch.chapter_number,
+          title: ch.title,
+          content: ch.full_content || ch.content,
+          word_count: ch.word_count,
+          images: ch.images || [],
+          completed: true,
+          sections: ch.sections || []
+        }));
+
+        setChapters(fullChapters);
+
+        // Update metadata if available
+        if (storedBook.book_metadata) {
+          setBookMetadata(storedBook.book_metadata);
+        }
+
+        // Update TOC if available
+        if (storedBook.table_of_contents) {
+          setTableOfContents(storedBook.table_of_contents);
+        }
+
+        toast({
+          title: "Success",
+          description: "Full book content loaded successfully!",
+        });
+
+        setCurrentMessage('Complete book content loaded');
+      } else {
+        toast({
+          title: "Warning",
+          description: "Full content not available yet. Generation may still be in progress.",
+          variant: "destructive"
+        });
+      }
+    } catch (error: any) {
+      console.error('Load full content error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load full content. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }, [usageId, toast]);
+
+  const exportToPDF = useCallback(async () => {
+    if (!usageId) {
+      toast({
+        title: "Error",
+        description: "No usage ID available for PDF export",
         variant: "destructive"
       });
       return;
@@ -396,31 +461,53 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
     setIsExporting(true);
 
     try {
-      const pdfGenerator = new PDFGenerator();
-      const bookData = {
-        book_metadata: bookMetadata,
-        table_of_contents: tableOfContents,
-        chapters: chapters,
-        bibliography: ['Generated with AI Technology']
-      };
+      // Try to download PDF from backend first
+      await BookApiService.downloadBookPDF(usageId);
 
-      await pdfGenerator.downloadPDF(bookData, `${bookMetadata.title}.pdf`);
-      
       toast({
         title: "Success",
-        description: "PDF exported successfully!",
+        description: "PDF downloaded successfully!",
       });
     } catch (error: any) {
-      console.error('PDF export error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to export PDF. Please try again.",
-        variant: "destructive"
-      });
+      console.warn('Backend PDF download failed, generating locally:', error);
+
+      // Fallback to local PDF generation
+      if (!bookMetadata || chapters.length === 0) {
+        toast({
+          title: "Error",
+          description: "No content available to export",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      try {
+        const pdfGenerator = new PDFGenerator();
+        const bookData = {
+          book_metadata: bookMetadata,
+          table_of_contents: tableOfContents,
+          chapters: chapters,
+          bibliography: ['Generated with AI Technology']
+        };
+
+        await pdfGenerator.downloadPDF(bookData, `${bookMetadata.title}.pdf`);
+
+        toast({
+          title: "Success",
+          description: "PDF exported successfully!",
+        });
+      } catch (localError: any) {
+        console.error('Local PDF export error:', localError);
+        toast({
+          title: "Error",
+          description: "Failed to export PDF. Please try again.",
+          variant: "destructive"
+        });
+      }
     } finally {
       setIsExporting(false);
     }
-  }, [bookMetadata, chapters, tableOfContents, toast]);
+  }, [usageId, bookMetadata, chapters, tableOfContents, toast]);
 
   useEffect(() => {
     if (!resumeState && !isGenerating && !streamHandler.current) {
