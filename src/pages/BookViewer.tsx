@@ -94,33 +94,107 @@ const BookViewer: React.FC = () => {
   }, [action, state]);
 
   const loadBookState = async () => {
-    if (!usageId) return;
+    if (!usageId && !urlSlug) return;
 
     try {
       setLoading(true);
-      
-      // First, try to get the generation state
-      // This would use your new backend endpoint: GET /api/ai/long-form-book/{usage_id}/state
-      // For now, we'll simulate with the existing status endpoint
-      const statusResponse = await BookApiService.getGenerationStatus(usageId);
-      
-      const mockState: GenerationState = {
-        usage_id: usageId,
-        status: statusResponse.status,
-        progress: 0, // You'll get this from your new state endpoint
-        current_chapter: 1,
-        url_slug: urlSlug || `book-${usageId.slice(0, 8)}`,
-        created_at: statusResponse.created_at,
-        updated_at: statusResponse.created_at,
-        can_pause: statusResponse.status === 'processing',
-        can_resume: statusResponse.status === 'pending',
-        can_cancel: ['pending', 'processing'].includes(statusResponse.status),
-        access_level: 'private',
-        shareable_url: `/book-generation/${urlSlug}`,
-        has_recovery_data: statusResponse.has_output
-      };
 
-      setState(mockState);
+      let currentUsageId = usageId;
+      let projectResponse = null;
+
+      // If we have a URL slug but no usageId, resolve it first
+      if (urlSlug && !usageId) {
+        try {
+          const slugResponse = await fetch(`/api/ai/long-form-book/project/${urlSlug}`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (slugResponse.ok) {
+            const slugResult = await slugResponse.json();
+            if (slugResult.success) {
+              projectResponse = slugResult.data;
+              currentUsageId = projectResponse.usage_id;
+            }
+          }
+        } catch (slugError) {
+          console.warn('Failed to resolve URL slug:', slugError);
+        }
+      }
+
+      if (!currentUsageId) {
+        throw new Error('Project not found');
+      }
+
+      // Get enhanced state from new backend endpoint
+      let enhancedState: GenerationState;
+
+      try {
+        const stateResponse = await fetch(`/api/ai/long-form-book/${currentUsageId}/state`, {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (stateResponse.ok) {
+          const stateResult = await stateResponse.json();
+          if (stateResult.success) {
+            const stateData = stateResult.data;
+
+            enhancedState = {
+              usage_id: currentUsageId,
+              status: stateData.status,
+              progress: stateData.progress || 0,
+              current_chapter: stateData.current_chapter || 1,
+              url_slug: stateData.url_slug || urlSlug || `book-${currentUsageId.slice(0, 8)}`,
+              created_at: stateData.book_context?.created_at || new Date().toISOString(),
+              updated_at: stateData.live_data?.last_heartbeat || new Date().toISOString(),
+              can_pause: stateData.navigation?.can_pause || false,
+              can_resume: stateData.navigation?.can_resume || false,
+              can_cancel: stateData.navigation?.can_cancel || false,
+              access_level: 'private',
+              shareable_url: `/book-generation/${stateData.url_slug}`,
+              has_recovery_data: stateData.recovery?.has_checkpoint || false,
+              // Enhanced fields
+              current_operation: stateData.current_operation,
+              estimated_completion: stateData.estimated_completion,
+              book_context: stateData.book_context,
+              live_data: stateData.live_data,
+              recovery_info: stateData.recovery
+            };
+          } else {
+            throw new Error('Failed to get state');
+          }
+        } else {
+          throw new Error('State endpoint not available');
+        }
+      } catch (stateError) {
+        console.warn('Enhanced state not available, falling back to basic status:', stateError);
+
+        // Fallback to existing status endpoint
+        const statusResponse = await BookApiService.getGenerationStatus(currentUsageId);
+
+        enhancedState = {
+          usage_id: currentUsageId,
+          status: statusResponse.status,
+          progress: 0,
+          current_chapter: 1,
+          url_slug: urlSlug || `book-${currentUsageId.slice(0, 8)}`,
+          created_at: statusResponse.created_at,
+          updated_at: statusResponse.created_at,
+          can_pause: statusResponse.status === 'processing',
+          can_resume: statusResponse.status === 'pending',
+          can_cancel: ['pending', 'processing'].includes(statusResponse.status),
+          access_level: 'private',
+          shareable_url: `/book-generation/${urlSlug}`,
+          has_recovery_data: statusResponse.has_output
+        };
+      }
+
+      setState(enhancedState);
 
       // If completed, try to load the full book data
       if (statusResponse.status === 'completed') {
