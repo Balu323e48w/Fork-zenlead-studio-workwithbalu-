@@ -130,6 +130,7 @@ const BookViewer: React.FC = () => {
 
       // Get enhanced state from new backend endpoint
       let enhancedState: GenerationState;
+      let statusResponse: any;
 
       try {
         const stateResponse = await fetch(`/api/ai/long-form-book/${currentUsageId}/state`, {
@@ -150,21 +151,23 @@ const BookViewer: React.FC = () => {
               progress: stateData.progress || 0,
               current_chapter: stateData.current_chapter || 1,
               url_slug: stateData.url_slug || urlSlug || `book-${currentUsageId.slice(0, 8)}`,
-              created_at: stateData.book_context?.created_at || new Date().toISOString(),
-              updated_at: stateData.live_data?.last_heartbeat || new Date().toISOString(),
-              can_pause: stateData.navigation?.can_pause || false,
-              can_resume: stateData.navigation?.can_resume || false,
-              can_cancel: stateData.navigation?.can_cancel || false,
-              access_level: 'private',
-              shareable_url: `/book-generation/${stateData.url_slug}`,
-              has_recovery_data: stateData.recovery?.has_checkpoint || false,
+              created_at: stateData.created_at || new Date().toISOString(),
+              updated_at: stateData.updated_at || new Date().toISOString(),
+              can_pause: stateData.can_pause || false,
+              can_resume: stateData.can_resume || false,
+              can_cancel: stateData.can_cancel || false,
+              access_level: stateData.access_level || 'private',
+              shareable_url: stateData.shareable_url || `/book-generation/${stateData.url_slug}`,
+              has_recovery_data: stateData.has_recovery_data || false,
               // Enhanced fields
               current_operation: stateData.current_operation,
               estimated_completion: stateData.estimated_completion,
               book_context: stateData.book_context,
               live_data: stateData.live_data,
-              recovery_info: stateData.recovery
+              recovery_info: stateData.recovery_info
             };
+
+            statusResponse = { status: stateData.status };
           } else {
             throw new Error('Failed to get state');
           }
@@ -175,7 +178,7 @@ const BookViewer: React.FC = () => {
         console.warn('Enhanced state not available, falling back to basic status:', stateError);
 
         // Fallback to existing status endpoint
-        const statusResponse = await BookApiService.getGenerationStatus(currentUsageId);
+        statusResponse = await BookApiService.getGenerationStatus(currentUsageId);
 
         enhancedState = {
           usage_id: currentUsageId,
@@ -196,15 +199,26 @@ const BookViewer: React.FC = () => {
 
       setState(enhancedState);
 
-      // If completed, try to load the full book data
+      // If completed, try to load the full book data using new stored endpoint
       if (statusResponse.status === 'completed') {
         try {
-          const storedBook = await BookApiService.getStoredBook(usageId);
-          setBookData(storedBook);
-          
-          // Extract chapters for display
-          if (storedBook.full_book_content?.chapters) {
-            setChapters(storedBook.full_book_content.chapters);
+          const response = await fetch(`/api/ai/long-form-book/${currentUsageId}/stored`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              setBookData(result.data);
+
+              // Extract chapters for display
+              if (result.data.full_book_content?.chapters) {
+                setChapters(result.data.full_book_content.chapters);
+              }
+            }
           }
         } catch (bookError) {
           console.warn('Could not load full book data:', bookError);
@@ -282,7 +296,36 @@ const BookViewer: React.FC = () => {
           break;
           
         case 'download':
-          await BookApiService.downloadBookPDF(state.usage_id);
+          try {
+            const response = await fetch(`/api/ai/long-form-book/${state.usage_id}/pdf`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                'Content-Type': 'application/json'
+              }
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success && result.data.pdf_base64) {
+                const link = document.createElement('a');
+                link.href = `data:application/pdf;base64,${result.data.pdf_base64}`;
+                link.download = result.data.filename || 'book.pdf';
+                link.click();
+
+                toast({
+                  title: "Downloaded",
+                  description: "PDF downloaded successfully!",
+                });
+              }
+            }
+          } catch (downloadError) {
+            console.error('Download failed:', downloadError);
+            toast({
+              title: "Error",
+              description: "Failed to download PDF",
+              variant: "destructive"
+            });
+          }
           break;
           
         case 'share':

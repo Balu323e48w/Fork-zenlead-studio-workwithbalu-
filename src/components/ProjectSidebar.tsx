@@ -6,14 +6,14 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Book, 
-  Play, 
-  Pause, 
-  CheckCircle, 
-  Clock, 
+import {
+  Book,
+  Play,
+  Pause,
+  CheckCircle,
+  Clock,
   AlertTriangle,
-  Eye, 
+  Eye,
   Download,
   RefreshCw,
   Plus,
@@ -21,7 +21,8 @@ import {
   Loader2,
   CreditCard,
   Calendar,
-  ArrowRight
+  ArrowRight,
+  BookOpen
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { BookApiService } from "@/lib/bookApi";
@@ -84,8 +85,8 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
   const fetchSidebarData = async () => {
     try {
       setRefreshing(true);
-      
-      // Call your new backend endpoint
+
+      // Call your new backend endpoint for real-time dashboard
       const response = await fetch('/api/ai/long-form-book/dashboard/real-time', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
@@ -94,13 +95,57 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
       });
 
       if (!response.ok) throw new Error('Failed to fetch sidebar data');
-      
+
       const result = await response.json();
-      
+
       if (result.success) {
+        // Map the enhanced backend response to frontend structure
+        const enhancedProjects = (result.data.active_generations || []).map((project: any) => ({
+          usage_id: project.usage_id,
+          title: project.title,
+          status: project.status,
+          progress: project.progress || 0,
+          current_chapter: project.current_chapter,
+          total_chapters: project.total_chapters,
+          created_at: project.created_at,
+          last_activity: project.updated_at || project.created_at,
+          url_slug: project.url_slug,
+          thumbnail: project.thumbnail,
+          can_resume: project.can_resume,
+          estimated_completion: project.estimated_completion,
+          is_live: project.status === 'processing',
+          credits_used: project.credits_used,
+          word_count: project.word_count,
+          current_operation: project.current_operation,
+          quick_actions: project.status === 'processing' ? ['pause', 'view_live'] :
+                         project.can_resume ? ['resume', 'view_live'] : ['view_live']
+        }));
+
+        const recentProjects = (result.data.recent_projects || []).map((project: any) => ({
+          usage_id: project.usage_id,
+          title: project.title,
+          status: project.status,
+          progress: project.progress || 0,
+          current_chapter: project.current_chapter,
+          total_chapters: project.total_chapters,
+          created_at: project.created_at,
+          last_activity: project.updated_at || project.created_at,
+          url_slug: project.url_slug,
+          thumbnail: project.thumbnail,
+          can_resume: project.can_resume,
+          estimated_completion: project.estimated_completion,
+          is_live: project.status === 'processing',
+          credits_used: project.credits_used,
+          word_count: project.word_count,
+          current_operation: project.current_operation,
+          quick_actions: project.status === 'completed' ? ['download_pdf', 'view'] :
+                         project.status === 'processing' ? ['pause', 'view_live'] :
+                         project.can_resume ? ['resume'] : ['view']
+        }));
+
         const data: SidebarData = {
-          active_projects: result.data.active_generations || [],
-          recent_projects: result.data.recent_projects || [],
+          active_projects: enhancedProjects,
+          recent_projects: recentProjects,
           templates: [],
           user_stats: {
             total_books: result.data.summary?.total_projects || 0,
@@ -109,7 +154,7 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
             this_month_usage: result.data.summary?.total_credits_used || 0
           }
         };
-        
+
         setSidebarData(data);
       }
     } catch (error: any) {
@@ -172,6 +217,58 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
           navigate(`/book-generation/${project.url_slug}?view=live`);
           break;
           
+        case 'download_pdf':
+          try {
+            const response = await fetch(`/api/ai/long-form-book/${project.usage_id}/pdf`, {
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                'Content-Type': 'application/json'
+              }
+            });
+
+            if (response.ok) {
+              const result = await response.json();
+              if (result.success && result.data.pdf_base64) {
+                const link = document.createElement('a');
+                link.href = `data:application/pdf;base64,${result.data.pdf_base64}`;
+                link.download = result.data.filename || `${project.title}.pdf`;
+                link.click();
+
+                toast({
+                  title: "Downloaded",
+                  description: "PDF downloaded successfully!",
+                });
+              }
+            }
+          } catch (error) {
+            toast({
+              title: "Error",
+              description: "Failed to download PDF",
+              variant: "destructive"
+            });
+          }
+          break;
+
+        case 'resume':
+          await fetch(`/api/ai/long-form-book/${project.usage_id}/resume`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Content-Type': 'application/json'
+            }
+          });
+
+          toast({
+            title: "Resumed",
+            description: `${project.title} generation resumed`,
+          });
+          navigate(`/book-generation/${project.url_slug}?view=live`);
+          break;
+
+        case 'view':
+          navigate(`/book-generation/${project.url_slug}`);
+          break;
+
         case 'download_partial':
           // Download partial content
           toast({
@@ -272,9 +369,13 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
                 variant="outline"
                 className="h-6 px-2 text-xs"
                 onClick={(e) => handleQuickAction(project, action, e)}
+                title={action.replace('_', ' ')}
               >
                 {action === 'pause' && <Pause className="h-3 w-3" />}
                 {action === 'view_live' && <Eye className="h-3 w-3" />}
+                {action === 'download_pdf' && <Download className="h-3 w-3" />}
+                {action === 'resume' && <Play className="h-3 w-3" />}
+                {action === 'view' && <BookOpen className="h-3 w-3" />}
                 {action === 'download_partial' && <Download className="h-3 w-3" />}
               </Button>
             ))}

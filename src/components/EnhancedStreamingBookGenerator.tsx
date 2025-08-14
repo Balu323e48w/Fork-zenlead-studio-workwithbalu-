@@ -549,21 +549,39 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
         streamHandler.current.stop();
       }
 
-      // Call backend pause endpoint (when implemented)
-      // await BookApiService.pauseGeneration(usageId);
-
-      setIsPaused(true);
-      setIsGenerating(false);
-      setCurrentMessage('Generation paused successfully. You can resume anytime.');
-      setPauseReason('User requested pause');
-
-      // Save current state
-      saveCurrentState();
-
-      toast({
-        title: "Paused",
-        description: "Generation has been paused. Your progress is saved.",
+      // Call backend pause endpoint
+      const response = await fetch(`/api/ai/long-form-book/${usageId}/pause`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          reason: 'user_requested',
+          save_checkpoint: true,
+          preserve_url: true
+        })
       });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setIsPaused(true);
+          setIsGenerating(false);
+          setCurrentMessage('Generation paused successfully. You can resume anytime.');
+          setPauseReason('User requested pause');
+
+          // Save current state
+          saveCurrentState();
+
+          toast({
+            title: "Paused",
+            description: "Generation has been paused. Your progress is saved.",
+          });
+        }
+      } else {
+        throw new Error('Failed to pause generation');
+      }
     } catch (error: any) {
       console.error('Failed to pause generation:', error);
       toast({
@@ -581,31 +599,72 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
       setCurrentMessage('Resuming generation...');
       setIsPaused(false);
 
-      // Call backend resume endpoint (when implemented)
-      // This would start a new SSE stream from where we left off
-      // await BookApiService.resumeGeneration(usageId);
+      // Create new stream handler for resume
+      streamHandler.current = createStreamHandler();
 
-      // For now, restart the stream with existing data
-      setIsGenerating(true);
-
-      toast({
-        title: "Resumed",
-        description: "Generation resumed from where it was paused.",
+      // Call backend resume endpoint which returns a streaming response
+      const response = await fetch(`/api/ai/long-form-book/${usageId}/resume`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          resume_from: 'last_checkpoint'
+        })
       });
 
-      // The actual resume would need to be handled by the backend
-      // which would continue from the saved checkpoint
+      if (response.ok && response.headers.get('content-type')?.includes('text/event-stream')) {
+        // Handle the SSE stream from resume endpoint
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
 
+        setIsGenerating(true);
+
+        if (reader) {
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+
+              const chunk = decoder.decode(value);
+              const lines = chunk.split('\n');
+
+              for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                  try {
+                    const eventData = JSON.parse(line.slice(6));
+                    processStreamEvent(eventData);
+                  } catch (e) {
+                    console.warn('Failed to parse resume event:', e);
+                  }
+                }
+              }
+            }
+          } finally {
+            reader.releaseLock();
+          }
+        }
+
+        toast({
+          title: "Resumed",
+          description: "Generation resumed from saved checkpoint.",
+        });
+      } else {
+        throw new Error('Failed to resume generation');
+      }
     } catch (error: any) {
       console.error('Failed to resume generation:', error);
       setIsPaused(true);
+      setIsGenerating(false);
+      streamHandler.current = null;
       toast({
         title: "Error",
         description: "Failed to resume generation. Please try again.",
         variant: "destructive"
       });
     }
-  }, [usageId, isPaused, toast]);
+  }, [usageId, isPaused, toast, processStreamEvent]);
 
   const loadFullContent = useCallback(async () => {
     if (!usageId) {

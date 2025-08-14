@@ -56,17 +56,28 @@ export class NetworkRecoveryManager {
         connection_id: this.generateConnectionId()
       };
 
-      // This would call your new heartbeat endpoint
-      // const response = await BookApiService.sendHeartbeat(this.usageId, heartbeatData);
-      
-      // For now, simulate heartbeat success
-      const response = { 
+      // Call the new backend heartbeat endpoint
+      const response = await fetch(`/api/ai/long-form-book/${this.usageId}/heartbeat`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(heartbeatData)
+      });
+
+      if (!response.ok) {
+        throw new Error(`Heartbeat failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const heartbeatResponse = result.success ? result.data : {
         server_timestamp: new Date().toISOString(),
-        connection_healthy: true,
+        connection_healthy: false,
         missed_events: []
       };
 
-      if (response.connection_healthy) {
+      if (heartbeatResponse.connection_healthy) {
         if (!this.isConnected) {
           this.handleReconnection();
         }
@@ -74,8 +85,8 @@ export class NetworkRecoveryManager {
         this.isConnected = true;
 
         // Handle missed events if any
-        if (response.missed_events && response.missed_events.length > 0 && this.onMissedEvents) {
-          this.onMissedEvents(response.missed_events);
+        if (heartbeatResponse.missed_events && heartbeatResponse.missed_events.length > 0 && this.onMissedEvents) {
+          this.onMissedEvents(heartbeatResponse.missed_events);
         }
       }
 
@@ -168,11 +179,24 @@ export class StateRecoveryManager {
   async recoverFromServer(): Promise<any | null> {
     try {
       console.log('🔄 Attempting server recovery...');
-      
-      // This would call your new recovery endpoint
-      // const recovery = await BookApiService.getRecoveryData(this.usageId);
-      
-      // For now, return null - server recovery not implemented yet
+
+      // Call the new recovery endpoint
+      const response = await fetch(`/api/ai/long-form-book/${this.usageId}/recovery`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error(`Recovery failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (result.success) {
+        return result.data;
+      }
+
       return null;
     } catch (error) {
       console.warn('Server recovery failed:', error);
