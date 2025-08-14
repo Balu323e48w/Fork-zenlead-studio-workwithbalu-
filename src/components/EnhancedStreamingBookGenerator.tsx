@@ -244,14 +244,29 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
         setCurrentMessage('Book generation completed!');
         setProgress(100);
         setGenerationComplete(true);
-        
+
         if (event.book_data) {
           if (event.book_data.metadata) {
             setBookMetadata(event.book_data.metadata);
           }
-          
+
           if (event.book_data.table_of_contents) {
             setTableOfContents(event.book_data.table_of_contents);
+          }
+
+          // Process complete chapters if available
+          if (event.book_data.complete_chapters && event.book_data.complete_chapters.length > 0) {
+            const completeChapters = event.book_data.complete_chapters.map((ch: any) => ({
+              chapter_number: ch.chapter_number,
+              title: ch.title,
+              content: ch.full_content || ch.content,
+              word_count: ch.word_count,
+              images: ch.images || [],
+              completed: true,
+              sections: ch.sections || []
+            }));
+
+            setChapters(completeChapters);
           }
         }
         break;
