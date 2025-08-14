@@ -395,19 +395,19 @@ export const ProjectUtils = {
     return errors;
   },
 
-  estimateGenerationTime: (settings: ProjectSettings): number {
+  estimateGenerationTime: (settings: ProjectSettings): number => {
     const baseTime = 300; // 5 minutes base
     const chapterTime = (settings.chapters_count || 10) * 120; // 2 minutes per chapter
     const imageTime = settings.include_images ? (settings.chapters_count || 10) * 60 : 0; // 1 minute per chapter for images
-    
+
     return Math.round((baseTime + chapterTime + imageTime) / 60); // Return in minutes
   },
 
-  estimateCreditsRequired: (settings: ProjectSettings): number {
+  estimateCreditsRequired: (settings: ProjectSettings): number => {
     const baseCredits = 30;
     const chapterCredits = (settings.chapters_count || 10) * 2;
     const imageCredits = settings.include_images ? (settings.chapters_count || 10) * 3 : 0;
-    
+
     return baseCredits + chapterCredits + imageCredits;
   }
 };
