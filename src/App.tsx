@@ -233,7 +233,7 @@ const App = () => {
                   path="/book-generation/:urlSlug"
                   element={
                     <AuthenticatedRoute>
-                      <BookViewer />
+                      <EnhancedBookViewer />
                     </AuthenticatedRoute>
                   }
                 />
