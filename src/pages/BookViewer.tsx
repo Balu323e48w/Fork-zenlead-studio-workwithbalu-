@@ -230,16 +230,55 @@ const BookViewer: React.FC = () => {
     try {
       switch (actionType) {
         case 'pause':
-          // This would call your new backend endpoint: POST /api/ai/long-form-book/{usage_id}/pause
-          toast({
-            title: "Paused",
-            description: "Generation has been paused. You can resume anytime.",
+          const pauseResponse = await fetch(`/api/ai/long-form-book/${state.usage_id}/pause`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              reason: 'user_requested',
+              save_checkpoint: true,
+              preserve_url: true
+            })
           });
+
+          if (pauseResponse.ok) {
+            const pauseResult = await pauseResponse.json();
+            if (pauseResult.success) {
+              toast({
+                title: "Paused",
+                description: "Generation paused successfully. Progress saved.",
+              });
+            }
+          }
           loadBookState();
           break;
-          
+
         case 'resume':
-          setView('generator');
+          // Check if we should resume in generator view or call resume endpoint
+          if (state.can_resume && state.has_recovery_data) {
+            const resumeResponse = await fetch(`/api/ai/long-form-book/${state.usage_id}/resume`, {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                resume_from: 'last_checkpoint'
+              })
+            });
+
+            if (resumeResponse.ok) {
+              setView('generator');
+              toast({
+                title: "Resuming",
+                description: "Generation resumed from saved checkpoint.",
+              });
+            }
+          } else {
+            setView('generator');
+          }
           break;
           
         case 'download':
