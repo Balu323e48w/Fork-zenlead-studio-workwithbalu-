@@ -762,6 +762,11 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
                   </div>
                 )}
                 <div className="text-muted-foreground">{currentMessage}</div>
+                {isPaused && pauseReason && (
+                  <div className="text-xs text-yellow-600 mt-1">
+                    Reason: {pauseReason}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
