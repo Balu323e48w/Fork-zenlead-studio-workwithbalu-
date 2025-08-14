@@ -498,18 +498,31 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
             </>
           )}
           {(generationComplete || chapters.length > 0) && (
-            <Button 
-              size="sm" 
-              onClick={exportToPDF}
-              disabled={isExporting}
-            >
-              {isExporting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Download className="h-4 w-4 mr-2" />
+            <>
+              {usageId && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadFullContent}
+                  disabled={isExporting}
+                >
+                  <Eye className="h-4 w-4 mr-2" />
+                  Load Full Content
+                </Button>
               )}
-              Export PDF
-            </Button>
+              <Button
+                size="sm"
+                onClick={exportToPDF}
+                disabled={isExporting}
+              >
+                {isExporting ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
+                Export PDF
+              </Button>
+            </>
           )}
         </div>
       </div>
