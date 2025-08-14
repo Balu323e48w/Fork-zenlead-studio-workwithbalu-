@@ -678,13 +678,24 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
         </div>
         
         <div className="flex items-center gap-2">
-          {isGenerating && (
+          {(isGenerating || isPaused) && (
             <>
-              <Button variant="outline" size="sm" onClick={isPaused ? resumeGeneration : pauseGeneration}>
-                {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-              </Button>
+              {isPaused ? (
+                <Button variant="outline" size="sm" onClick={resumeGeneration}>
+                  <Play className="h-4 w-4 mr-1" />
+                  Resume
+                </Button>
+              ) : (
+                canPause && (
+                  <Button variant="outline" size="sm" onClick={pauseGeneration}>
+                    <Pause className="h-4 w-4 mr-1" />
+                    Pause
+                  </Button>
+                )
+              )}
               <Button variant="outline" size="sm" onClick={stopGeneration}>
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 mr-1" />
+                Cancel
               </Button>
             </>
           )}
