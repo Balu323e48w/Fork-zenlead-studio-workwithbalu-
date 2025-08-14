@@ -736,14 +736,16 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
           <Card className="m-4 mb-2">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
-                {isGenerating ? (
+                {isPaused ? (
+                  <Pause className="h-4 w-4 text-yellow-500" />
+                ) : isGenerating ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : generationComplete ? (
                   <CheckCircle className="h-4 w-4 text-green-500" />
                 ) : (
                   <Clock className="h-4 w-4" />
                 )}
-                Generation Progress
+                {isPaused ? 'Generation Paused' : 'Generation Progress'}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
