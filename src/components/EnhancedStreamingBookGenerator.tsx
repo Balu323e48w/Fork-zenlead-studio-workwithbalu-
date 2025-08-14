@@ -220,37 +220,64 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
     };
   }, [usageId]);
 
-  // Auto-save progress periodically
+  // Auto-save progress periodically to backend
   useEffect(() => {
-    if (usageId && autoSaveEnabled && recoveryManager.current &&
+    if (usageId && autoSaveEnabled &&
         (isGenerating || chapters.length > 0)) {
 
-      const autoSaveInterval = setInterval(() => {
-        const progressData = {
-          usageId,
-          requestData,
-          status: generationComplete ? 'completed' : isGenerating ? 'generating' : 'paused',
-          progress,
-          currentMessage,
-          chapters,
-          bookMetadata,
-          tableOfContents,
-          generationComplete,
-          startTime: startTime.current,
-          isPaused,
-          pauseReason
-        };
+      const autoSaveInterval = setInterval(async () => {
+        try {
+          const saveData = {
+            usage_id: usageId,
+            progress,
+            current_chapter: chapters.length + 1,
+            current_message: currentMessage,
+            chapters_completed: chapters.length,
+            partial_content: {
+              chapters,
+              bookMetadata,
+              tableOfContents
+            },
+            generation_state: {
+              isGenerating,
+              isPaused,
+              generationComplete,
+              pauseReason
+            },
+            save_sequence: Date.now(),
+            can_recover: true
+          };
 
-        recoveryManager.current?.saveProgress(progressData);
-        setLastSaveTime(new Date());
+          // Call new backend auto-save endpoint
+          const response = await fetch(`/api/ai/long-form-book/${usageId}/auto-save`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(saveData)
+          });
 
-        console.log('💾 Auto-saved progress');
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              setLastSaveTime(new Date());
+              console.log('💾 Auto-saved to backend');
+            }
+          }
+
+          // Also save locally for backup
+          recoveryManager.current?.saveProgress(saveData);
+
+        } catch (error) {
+          console.warn('Auto-save failed:', error);
+        }
       }, 30000); // Auto-save every 30 seconds
 
       return () => clearInterval(autoSaveInterval);
     }
   }, [usageId, autoSaveEnabled, isGenerating, progress, chapters, bookMetadata,
-      tableOfContents, generationComplete, requestData, currentMessage, isPaused, pauseReason]);
+      tableOfContents, generationComplete, currentMessage, isPaused, pauseReason]);
 
   const processStreamEvent = useCallback((event: StreamEvent) => {
     console.log('📡 Stream event:', event);
