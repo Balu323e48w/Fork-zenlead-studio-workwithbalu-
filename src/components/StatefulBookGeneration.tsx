@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiService } from "@/lib/apiService";
+import { tokenManager } from "@/lib/token";
 import { format } from 'date-fns';
 
 interface Chapter {
@@ -137,75 +138,117 @@ const StatefulBookGeneration: React.FC = () => {
 
   const startStreaming = useCallback(async (resumeMode: boolean = false) => {
     try {
-      const streamUrl = resumeMode 
-        ? `/api/ai/long-form-book/${projectId}/stream-status`
-        : `/api/ai/long-form-book/generate-stream`;
-
-      const eventSource = new EventSource(streamUrl, {
-        withCredentials: true
-      });
-
-      // If not resume mode, send the form data first
       if (!resumeMode && formData) {
-        // Send POST request to start generation
-        fetch('/api/ai/long-form-book/generate-stream', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-          },
-          body: JSON.stringify(formData)
-        });
+        // Start new generation with fetch streaming
+        startNewGenerationStream();
+      } else {
+        // For resume mode, poll status instead of streaming
+        startStatusPolling();
       }
-
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          handleStreamEvent(data);
-        } catch (e) {
-          console.error('Error parsing stream data:', e);
-        }
-      };
-
-      eventSource.onerror = (error) => {
-        console.error('EventSource error:', error);
-        eventSource.close();
-        setIsGenerating(false);
-        
-        if (!generationComplete) {
-          setError('Connection lost. Refreshing...');
-          setTimeout(() => {
-            window.location.reload();
-          }, 3000);
-        }
-      };
-
-      // Auto-reconnect for processing projects
-      const checkStatus = setInterval(async () => {
-        if (projectData?.status === 'processing') {
-          try {
-            const statusCheck = await apiService.getBookGenerationStatus(projectId!);
-            if (statusCheck.success && statusCheck.data.status !== 'processing') {
-              clearInterval(checkStatus);
-              eventSource.close();
-              loadProjectState(); // Reload to get final state
-            }
-          } catch (e) {
-            // Ignore status check errors
-          }
-        }
-      }, 10000); // Check every 10 seconds
-
-      return () => {
-        eventSource.close();
-        clearInterval(checkStatus);
-      };
-
     } catch (err: any) {
       setError(err.message || 'Failed to start streaming');
       setIsGenerating(false);
     }
   }, [projectId, formData, projectData?.status, generationComplete]);
+
+  const startNewGenerationStream = async () => {
+    try {
+      const token = localStorage.getItem('auth_token');
+
+      const response = await fetch('/api/ai/long-form-book/generate-stream', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Authentication failed. Please sign in again.');
+        }
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      if (!response.body) {
+        throw new Error('No response body for streaming');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.startsWith('event:')) {
+            // Extract event type if needed
+          } else if (line.startsWith('data:')) {
+            try {
+              const data = line.substring(5).trim();
+              if (data) {
+                const eventData = JSON.parse(data);
+                handleStreamEvent(eventData);
+
+                // If we get an error, stop streaming
+                if (eventData.type === 'error') {
+                  break;
+                }
+
+                // If we get completion, stop streaming
+                if (eventData.type === 'complete' || eventData.type === 'stored') {
+                  setIsGenerating(false);
+                  break;
+                }
+              }
+            } catch (e) {
+              console.error('Error parsing stream data:', e);
+            }
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Streaming error:', err);
+      setError(err.message || 'Streaming failed');
+      setIsGenerating(false);
+    }
+  };
+
+  const startStatusPolling = () => {
+    const pollStatus = async () => {
+      try {
+        const result = await apiService.getBookGenerationStatus(projectId!);
+        if (result.success) {
+          const status = result.data.status;
+
+          if (status === 'processing') {
+            // Continue polling
+            setTimeout(pollStatus, 3000);
+          } else if (status === 'completed') {
+            setIsGenerating(false);
+            setGenerationComplete(true);
+            loadCompletedBook();
+          } else if (status === 'failed') {
+            setIsGenerating(false);
+            setError(result.data.error_message || 'Generation failed');
+          }
+        }
+      } catch (err: any) {
+        console.error('Status polling error:', err);
+        setTimeout(pollStatus, 5000); // Retry after 5 seconds
+      }
+    };
+
+    pollStatus();
+  };
 
   const handleStreamEvent = (event: any) => {
     switch (event.type) {
