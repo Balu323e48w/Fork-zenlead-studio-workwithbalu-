@@ -138,9 +138,9 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
   const handleProjectClick = (project: ProjectData) => {
     // Use the backend-provided project_url for navigation
     if (project.status_info.can_open) {
-      // For long-form books, navigate to the specific book project page
+      // For long-form books, navigate to the stateful generation page
       if (project.project_type === 'long-form-book') {
-        navigate(`/texts/long-form-book/${project.usage_id}`);
+        navigate(`/long-form-book/${project.usage_id}`);
       } else {
         // For other project types, navigate using the project_url
         navigate(project.project_url);
