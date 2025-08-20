@@ -77,6 +77,7 @@ interface EnhancedStreamingBookGeneratorProps {
   onComplete?: (usageId: string, bookData: any) => void;
   onError?: (error: string) => void;
   onCancel?: () => void;
+  onNavigateToProject?: (usageId: string) => void;
   resumeState?: any;
 }
 
@@ -85,6 +86,7 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
   onComplete,
   onError,
   onCancel,
+  onNavigateToProject,
   resumeState
 }) => {
   const { toast } = useToast();
@@ -298,8 +300,16 @@ const EnhancedStreamingBookGenerator: React.FC<EnhancedStreamingBookGeneratorPro
 
       case 'credits_deducted':
         setCurrentMessage(event.message || 'Credits deducted successfully...');
-        setUsageId(event.usage_id || '');
+        const newUsageId = event.usage_id || '';
+        setUsageId(newUsageId);
         setProgress(5);
+
+        // Immediately navigate to project page after getting usage_id
+        if (newUsageId && onNavigateToProject) {
+          setTimeout(() => {
+            onNavigateToProject(newUsageId);
+          }, 2000); // Small delay to show the success message
+        }
         break;
 
       case 'progress':
