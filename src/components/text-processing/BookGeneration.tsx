@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,6 +13,7 @@ import { BookGenerationUtils, BookGenerationStateManager } from "@/lib/bookGener
 const BookGeneration = () => {
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationRequestData, setGenerationRequestData] = useState<any>(null);
   const [generatedBooks, setGeneratedBooks] = useState<Array<{ usageId: string; bookData: any; requestData: any }>>([]);
@@ -130,6 +131,11 @@ const BookGeneration = () => {
     BookGenerationStateManager.clearState();
   };
 
+  const handleNavigateToProject = (usageId: string) => {
+    // Navigate to the project page immediately after getting usage_id
+    navigate(`/texts/long-form-book/${usageId}`);
+  };
+
   const downloadPDF = async (usageId: string, title: string) => {
     try {
       const response = await apiService.getBookPDF(usageId);
@@ -204,6 +210,7 @@ const BookGeneration = () => {
           onComplete={handleGenerationComplete}
           onError={handleGenerationError}
           onCancel={handleCancelGeneration}
+          onNavigateToProject={handleNavigateToProject}
           resumeState={resumeState}
         />
       </div>
