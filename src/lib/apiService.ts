@@ -366,6 +366,60 @@ class APIService {
     return this.makeRequest<any>('/api/ai/usage/stats');
   }
 
+  // Get all AI projects for sidebar
+  async getAllProjects(params: {
+    project_type?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  } = {}): Promise<APIResponse<any>> {
+    const searchParams = new URLSearchParams();
+
+    if (params.project_type) searchParams.append('project_type', params.project_type);
+    if (params.status) searchParams.append('status', params.status);
+    if (params.limit) searchParams.append('limit', params.limit.toString());
+    if (params.offset) searchParams.append('offset', params.offset.toString());
+
+    return this.makeRequest<any>(`/api/ai/projects?${searchParams.toString()}`);
+  }
+
+  // Get processing projects for real-time updates
+  async getProcessingProjects(): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/projects/processing');
+  }
+
+  // Get book project view data
+  async getBookProjectView(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/project/${usageId}`);
+  }
+
+  // Get book generation status
+  async getBookGenerationStatus(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/${usageId}/status`);
+  }
+
+  // Cancel book generation
+  async cancelBookGeneration(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/${usageId}/cancel`, {
+      method: 'POST',
+    });
+  }
+
+  // Get user's book history
+  async getUserBookHistory(limit: number = 10, offset: number = 0): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/history?limit=${limit}&offset=${offset}`);
+  }
+
+  // Duplicate book settings
+  async duplicateBookSettings(usageId: string): Promise<APIResponse<any>> {
+    return this.makeRequest<any>(`/api/ai/long-form-book/${usageId}/duplicate`);
+  }
+
+  // Check user credits for book generation
+  async checkBookCredits(): Promise<APIResponse<any>> {
+    return this.makeRequest<any>('/api/ai/long-form-book/check-credits');
+  }
+
   // Resume Analysis
   async analyzeResume(formData: FormData): Promise<APIResponse<any>> {
     return this.makeRequest<any>('/api/ai/resume-analyzer/analyze', {
