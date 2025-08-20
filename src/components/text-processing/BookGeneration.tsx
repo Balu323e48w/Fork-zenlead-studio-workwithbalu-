@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -13,6 +13,7 @@ import { BookGenerationUtils, BookGenerationStateManager } from "@/lib/bookGener
 const BookGeneration = () => {
   const { toast } = useToast();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationRequestData, setGenerationRequestData] = useState<any>(null);
   const [generatedBooks, setGeneratedBooks] = useState<Array<{ usageId: string; bookData: any; requestData: any }>>([]);
@@ -74,13 +75,41 @@ const BookGeneration = () => {
   }, [autoStartRequested]);
 
   const handleGenerate = async (validatedData: any) => {
-    setGenerationRequestData(validatedData);
-    setIsGenerating(true);
-    setResumeState(null);
-    setShowResumeOption(false);
-    
-    // Clear any existing state
-    BookGenerationStateManager.clearState();
+    try {
+      // First create a usage record to get the project ID
+      const usageData = {
+        ai_model_slug: 'long-form-book',
+        model_settings: validatedData,
+        input_data: validatedData,
+        metadata: {
+          book_title: validatedData.book_title || 'Untitled Book',
+          genre: validatedData.genre,
+          target_audience: validatedData.target_audience
+        }
+      };
+
+      const usageResult = await apiService.createUsageRecord(usageData);
+
+      if (usageResult.success) {
+        const projectId = usageResult.data.usage_id;
+
+        // Navigate to the stateful generation page
+        navigate(`/long-form-book/${projectId}`, {
+          state: {
+            startGeneration: true,
+            formData: validatedData
+          }
+        });
+      } else {
+        throw new Error(usageResult.message || 'Failed to create project');
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to start generation",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleResumeGeneration = () => {
@@ -128,6 +157,11 @@ const BookGeneration = () => {
     setGenerationRequestData(null);
     setResumeState(null);
     BookGenerationStateManager.clearState();
+  };
+
+  const handleNavigateToProject = (usageId: string) => {
+    // Navigate to the stateful generation page
+    navigate(`/long-form-book/${usageId}`);
   };
 
   const downloadPDF = async (usageId: string, title: string) => {
@@ -204,6 +238,7 @@ const BookGeneration = () => {
           onComplete={handleGenerationComplete}
           onError={handleGenerationError}
           onCancel={handleCancelGeneration}
+          onNavigateToProject={handleNavigateToProject}
           resumeState={resumeState}
         />
       </div>

@@ -25,38 +25,46 @@ import {
   BookOpen
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { BookApiService } from "@/lib/bookApi";
+import { apiService } from "@/lib/apiService";
 import { format } from 'date-fns';
 
 interface ProjectData {
   usage_id: string;
+  project_type: string;
+  project_name: string;
   title: string;
-  status: string;
-  progress: number;
-  current_chapter?: number;
-  total_chapters?: number;
-  created_at: string;
-  last_activity: string;
-  url_slug: string;
+  subtitle?: string;
   thumbnail?: string;
-  can_resume: boolean;
-  estimated_completion?: string;
-  is_live: boolean;
+  status: string;
+  created_at: string;
+  completed_at?: string;
+  project_url: string;
+  status_info: {
+    color: string;
+    icon: string;
+    can_open: boolean;
+    is_processing: boolean;
+  };
   credits_used: number;
-  word_count?: number;
-  current_operation?: string;
-  quick_actions: string[];
+  has_results: boolean;
+  genre?: string;
 }
 
 interface SidebarData {
-  active_projects: ProjectData[];
-  recent_projects: ProjectData[];
-  templates: any[];
-  user_stats: {
-    total_books: number;
-    active_generations: number;
-    credits_remaining: number;
-    this_month_usage: number;
+  projects: ProjectData[];
+  projects_by_type: Record<string, ProjectData[]>;
+  pagination: {
+    total: number;
+    limit: number;
+    offset: number;
+    has_more: boolean;
+  };
+  summary: {
+    total: number;
+    processing: number;
+    completed: number;
+    failed: number;
+    by_type: Record<string, number>;
   };
 }
 
@@ -73,89 +81,40 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Auto-refresh interval
+  // Auto-refresh interval with processing projects polling
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchSidebarData();
-    }, 30000); // Refresh every 30 seconds
+    const interval = setInterval(async () => {
+      // Check if there are processing projects for faster updates
+      if (sidebarData?.summary.processing > 0) {
+        try {
+          const processingResult = await apiService.getProcessingProjects();
+          if (processingResult.success && processingResult.data.processing_projects.length > 0) {
+            // Update only processing projects for efficiency
+            fetchSidebarData();
+          }
+        } catch (error) {
+          console.warn('Failed to check processing projects:', error);
+        }
+      } else {
+        // Regular refresh
+        fetchSidebarData();
+      }
+    }, 5000); // Check every 5 seconds for processing projects
 
     return () => clearInterval(interval);
-  }, []);
+  }, [sidebarData?.summary.processing]);
 
   const fetchSidebarData = async () => {
     try {
       setRefreshing(true);
 
-      // Call your new backend endpoint for real-time dashboard
-      const response = await fetch('/api/ai/long-form-book/dashboard/real-time', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) throw new Error('Failed to fetch sidebar data');
-
-      const result = await response.json();
+      // Use the new backend endpoint for all AI projects
+      const result = await apiService.getAllProjects({ limit: 50 });
 
       if (result.success) {
-        // Map the enhanced backend response to frontend structure
-        const enhancedProjects = (result.data.active_generations || []).map((project: any) => ({
-          usage_id: project.usage_id,
-          title: project.title,
-          status: project.status,
-          progress: project.progress || 0,
-          current_chapter: project.current_chapter,
-          total_chapters: project.total_chapters,
-          created_at: project.created_at,
-          last_activity: project.updated_at || project.created_at,
-          url_slug: project.url_slug,
-          thumbnail: project.thumbnail,
-          can_resume: project.can_resume,
-          estimated_completion: project.estimated_completion,
-          is_live: project.status === 'processing',
-          credits_used: project.credits_used,
-          word_count: project.word_count,
-          current_operation: project.current_operation,
-          quick_actions: project.status === 'processing' ? ['pause', 'view_live'] :
-                         project.can_resume ? ['resume', 'view_live'] : ['view_live']
-        }));
-
-        const recentProjects = (result.data.recent_projects || []).map((project: any) => ({
-          usage_id: project.usage_id,
-          title: project.title,
-          status: project.status,
-          progress: project.progress || 0,
-          current_chapter: project.current_chapter,
-          total_chapters: project.total_chapters,
-          created_at: project.created_at,
-          last_activity: project.updated_at || project.created_at,
-          url_slug: project.url_slug,
-          thumbnail: project.thumbnail,
-          can_resume: project.can_resume,
-          estimated_completion: project.estimated_completion,
-          is_live: project.status === 'processing',
-          credits_used: project.credits_used,
-          word_count: project.word_count,
-          current_operation: project.current_operation,
-          quick_actions: project.status === 'completed' ? ['download_pdf', 'view'] :
-                         project.status === 'processing' ? ['pause', 'view_live'] :
-                         project.can_resume ? ['resume'] : ['view']
-        }));
-
-        const data: SidebarData = {
-          active_projects: enhancedProjects,
-          recent_projects: recentProjects,
-          templates: [],
-          user_stats: {
-            total_books: result.data.summary?.total_projects || 0,
-            active_generations: result.data.summary?.active_projects || 0,
-            credits_remaining: 150, // You'd get this from user endpoint
-            this_month_usage: result.data.summary?.total_credits_used || 0
-          }
-        };
-
-        setSidebarData(data);
+        setSidebarData(result.data);
+      } else {
+        throw new Error(result.message || 'Failed to fetch projects');
       }
     } catch (error: any) {
       console.error('Sidebar fetch error:', error);
@@ -177,18 +136,21 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
   }, [isOpen]);
 
   const handleProjectClick = (project: ProjectData) => {
-    if (project.status === 'processing' && project.is_live) {
-      // Navigate to live generation view
-      navigate(`/book-generation/${project.url_slug}?view=live`);
-    } else if (project.status === 'completed') {
-      // Navigate to completed book view
-      navigate(`/book-generation/${project.url_slug}`);
-    } else if (project.can_resume) {
-      // Navigate to resume generation
-      navigate(`/book-generation/${project.url_slug}?action=resume`);
+    // Use the backend-provided project_url for navigation
+    if (project.status_info.can_open) {
+      // For long-form books, navigate to the stateful generation page
+      if (project.project_type === 'long-form-book') {
+        navigate(`/long-form-book/${project.usage_id}`);
+      } else {
+        // For other project types, navigate using the project_url
+        navigate(project.project_url);
+      }
     } else {
-      // Default view
-      navigate(`/book-generation/${project.url_slug}`);
+      toast({
+        title: "Project Not Ready",
+        description: "Generation is not ready yet. Please wait.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -197,37 +159,27 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
     
     try {
       switch (action) {
-        case 'pause':
-          await fetch(`/api/ai/long-form-book/${project.usage_id}/pause`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-              'Content-Type': 'application/json'
+        case 'cancel':
+          if (project.project_type === 'long-form-book') {
+            const result = await apiService.cancelBookGeneration(project.usage_id);
+            if (result.success) {
+              toast({
+                title: "Cancelled",
+                description: `${project.title} has been cancelled`,
+              });
+              fetchSidebarData();
             }
-          });
-          
-          toast({
-            title: "Paused",
-            description: `${project.title} has been paused`,
-          });
-          fetchSidebarData();
+          }
           break;
           
-        case 'view_live':
-          navigate(`/book-generation/${project.url_slug}?view=live`);
+        case 'view':
+          handleProjectClick(project);
           break;
           
         case 'download_pdf':
-          try {
-            const response = await fetch(`/api/ai/long-form-book/${project.usage_id}/pdf`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-                'Content-Type': 'application/json'
-              }
-            });
-
-            if (response.ok) {
-              const result = await response.json();
+          if (project.project_type === 'long-form-book') {
+            try {
+              const result = await apiService.getBookPDF(project.usage_id);
               if (result.success && result.data.pdf_base64) {
                 const link = document.createElement('a');
                 link.href = `data:application/pdf;base64,${result.data.pdf_base64}`;
@@ -239,42 +191,42 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
                   description: "PDF downloaded successfully!",
                 });
               }
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to download PDF",
+                variant: "destructive"
+              });
             }
-          } catch (error) {
-            toast({
-              title: "Error",
-              description: "Failed to download PDF",
-              variant: "destructive"
-            });
           }
           break;
 
-        case 'resume':
-          await fetch(`/api/ai/long-form-book/${project.usage_id}/resume`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-              'Content-Type': 'application/json'
+        case 'duplicate':
+          if (project.project_type === 'long-form-book') {
+            try {
+              const result = await apiService.duplicateBookSettings(project.usage_id);
+              if (result.success) {
+                // Navigate to book generation with the settings
+                navigate('/text-processing', {
+                  state: {
+                    activeModel: 'long-form-book',
+                    templateSettings: result.data.settings,
+                    autoStart: false
+                  }
+                });
+                toast({
+                  title: "Settings Loaded",
+                  description: "Book settings loaded for duplication.",
+                });
+              }
+            } catch (error) {
+              toast({
+                title: "Error",
+                description: "Failed to load settings for duplication",
+                variant: "destructive"
+              });
             }
-          });
-
-          toast({
-            title: "Resumed",
-            description: `${project.title} generation resumed`,
-          });
-          navigate(`/book-generation/${project.url_slug}?view=live`);
-          break;
-
-        case 'view':
-          navigate(`/book-generation/${project.url_slug}`);
-          break;
-
-        case 'download_partial':
-          // Download partial content
-          toast({
-            title: "Downloading",
-            description: "Preparing partial content download...",
-          });
+          }
           break;
           
         default:
@@ -289,112 +241,134 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
     }
   };
 
-  const getStatusIcon = (status: string, isLive: boolean = false) => {
-    if (isLive) {
+  const getStatusIcon = (project: ProjectData) => {
+    const { status_info } = project;
+    
+    if (status_info.is_processing) {
       return <Loader2 className="h-4 w-4 animate-spin text-blue-500" />;
     }
     
-    switch (status) {
+    switch (project.status) {
       case 'processing':
         return <Clock className="h-4 w-4 text-blue-500" />;
       case 'completed':
         return <CheckCircle className="h-4 w-4 text-green-500" />;
       case 'failed':
         return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      case 'paused':
+      case 'cancelled':
         return <Pause className="h-4 w-4 text-yellow-500" />;
       default:
         return <Book className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => (
-    <Card 
-      className="cursor-pointer hover:shadow-md transition-all mb-3 border-l-4 border-l-primary/20"
-      onClick={() => handleProjectClick(project)}
-    >
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                {getStatusIcon(project.status, project.is_live)}
-                <h3 className="font-medium text-sm truncate">{project.title}</h3>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {format(new Date(project.last_activity), 'MMM dd, HH:mm')}
-              </p>
-            </div>
-            <Badge variant={project.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
-              {project.status}
-            </Badge>
-          </div>
+  const ProjectCard: React.FC<{ project: ProjectData }> = ({ project }) => {
+    const quickActions = [];
+    
+    if (project.status === 'completed') {
+      quickActions.push('view');
+      if (project.project_type === 'long-form-book') {
+        quickActions.push('download_pdf', 'duplicate');
+      }
+    } else if (project.status === 'processing') {
+      quickActions.push('view');
+      if (project.project_type === 'long-form-book') {
+        quickActions.push('cancel');
+      }
+    } else if (project.status_info.can_open) {
+      quickActions.push('view');
+    }
 
-          {/* Progress for active projects */}
-          {project.status === 'processing' && (
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs">
-                <span>Progress</span>
-                <span>{project.progress}%</span>
-              </div>
-              <Progress value={project.progress} className="h-1" />
-              {project.current_operation && (
+    return (
+      <Card 
+        className={`cursor-pointer hover:shadow-md transition-all mb-3 border-l-4 ${
+          project.status_info.can_open ? 'border-l-primary/20 hover:border-l-primary/50' : 'border-l-gray-200 cursor-not-allowed'
+        }`}
+        onClick={() => project.status_info.can_open && handleProjectClick(project)}
+      >
+        <CardContent className="p-4">
+          <div className="space-y-3">
+            {/* Header */}
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg">{project.thumbnail}</span>
+                  {getStatusIcon(project)}
+                  <h3 className="font-medium text-sm truncate">{project.title}</h3>
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {project.current_operation}
+                  {project.subtitle}
                 </p>
-              )}
-              {project.estimated_completion && (
-                <p className="text-xs text-blue-600">
-                  Est. {project.estimated_completion}
+                <p className="text-xs text-muted-foreground">
+                  {format(new Date(project.created_at), 'MMM dd, HH:mm')}
                 </p>
-              )}
+              </div>
+              <Badge 
+                variant={project.status === 'completed' ? 'default' : 'secondary'} 
+                className="text-xs"
+                style={{ backgroundColor: project.status_info.color, color: 'white' }}
+              >
+                <span className="mr-1">{project.status_info.icon}</span>
+                {project.status}
+              </Badge>
             </div>
-          )}
 
-          {/* Stats */}
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{project.credits_used} credits</span>
-            {project.current_chapter && project.total_chapters && (
-              <span>Ch {project.current_chapter}/{project.total_chapters}</span>
+            {/* Processing indicator */}
+            {project.status_info.is_processing && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs">
+                  <span>Processing...</span>
+                  <span className="text-blue-600">In Progress</span>
+                </div>
+                <div className="h-1 bg-gray-200 rounded overflow-hidden">
+                  <div className="h-full bg-blue-500 animate-pulse rounded"></div>
+                </div>
+              </div>
+            )}
+
+            {/* Stats */}
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{project.credits_used} credits</span>
+              <span>{project.project_name}</span>
+            </div>
+
+            {/* Quick Actions */}
+            {quickActions.length > 0 && (
+              <div className="flex gap-1">
+                {quickActions.map((action) => (
+                  <Button
+                    key={action}
+                    size="sm"
+                    variant="outline"
+                    className="h-6 px-2 text-xs"
+                    onClick={(e) => handleQuickAction(project, action, e)}
+                    title={action.replace('_', ' ')}
+                  >
+                    {action === 'cancel' && <AlertTriangle className="h-3 w-3" />}
+                    {action === 'view' && <Eye className="h-3 w-3" />}
+                    {action === 'download_pdf' && <Download className="h-3 w-3" />}
+                    {action === 'duplicate' && <RefreshCw className="h-3 w-3" />}
+                  </Button>
+                ))}
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 px-1 ml-auto"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleProjectClick(project);
+                  }}
+                  disabled={!project.status_info.can_open}
+                >
+                  <ArrowRight className="h-3 w-3" />
+                </Button>
+              </div>
             )}
           </div>
-
-          {/* Quick Actions */}
-          <div className="flex gap-1">
-            {project.quick_actions.map((action) => (
-              <Button
-                key={action}
-                size="sm"
-                variant="outline"
-                className="h-6 px-2 text-xs"
-                onClick={(e) => handleQuickAction(project, action, e)}
-                title={action.replace('_', ' ')}
-              >
-                {action === 'pause' && <Pause className="h-3 w-3" />}
-                {action === 'view_live' && <Eye className="h-3 w-3" />}
-                {action === 'download_pdf' && <Download className="h-3 w-3" />}
-                {action === 'resume' && <Play className="h-3 w-3" />}
-                {action === 'view' && <BookOpen className="h-3 w-3" />}
-                {action === 'download_partial' && <Download className="h-3 w-3" />}
-              </Button>
-            ))}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-6 px-1 ml-auto"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleProjectClick(project);
-              }}
-            >
-              <ArrowRight className="h-3 w-3" />
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   if (!isOpen) return null;
 
@@ -404,7 +378,7 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
         {/* Header */}
         <div className="p-4 border-b">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold">My Projects</h2>
+            <h2 className="font-semibold">All Projects</h2>
             <div className="flex gap-2">
               <Button size="sm" variant="ghost" onClick={fetchSidebarData} disabled={refreshing}>
                 <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
@@ -415,16 +389,16 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
             </div>
           </div>
 
-          {/* User Stats */}
+          {/* Summary Stats */}
           {sidebarData && (
             <div className="grid grid-cols-2 gap-3 text-xs">
               <div className="text-center p-2 bg-muted/30 rounded">
-                <div className="font-semibold">{sidebarData.user_stats.total_books}</div>
-                <div className="text-muted-foreground">Total Books</div>
+                <div className="font-semibold">{sidebarData.summary.total}</div>
+                <div className="text-muted-foreground">Total</div>
               </div>
               <div className="text-center p-2 bg-muted/30 rounded">
-                <div className="font-semibold">{sidebarData.user_stats.active_generations}</div>
-                <div className="text-muted-foreground">Active</div>
+                <div className="font-semibold">{sidebarData.summary.processing}</div>
+                <div className="text-muted-foreground">Processing</div>
               </div>
             </div>
           )}
@@ -438,31 +412,39 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
             </div>
           ) : sidebarData ? (
             <div className="space-y-6">
-              {/* Active Projects */}
-              {sidebarData.active_projects.length > 0 && (
+              {/* Processing Projects */}
+              {sidebarData.summary.processing > 0 && (
                 <div>
                   <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
                     <Clock className="h-4 w-4 text-blue-500" />
-                    Active Generations ({sidebarData.active_projects.length})
+                    Processing ({sidebarData.summary.processing})
                   </h3>
-                  {sidebarData.active_projects.map((project) => (
-                    <ProjectCard key={project.usage_id} project={project} />
-                  ))}
+                  {sidebarData.projects
+                    .filter(p => p.status === 'processing')
+                    .map((project) => (
+                      <ProjectCard key={project.usage_id} project={project} />
+                    ))
+                  }
                 </div>
               )}
 
-              {/* Recent Projects */}
-              {sidebarData.recent_projects.length > 0 && (
-                <div>
+              {/* Recent Projects by Type */}
+              {Object.entries(sidebarData.projects_by_type).map(([type, projects]) => (
+                <div key={type}>
                   <h3 className="font-medium text-sm mb-3 flex items-center gap-2">
                     <Book className="h-4 w-4" />
-                    Recent Projects
+                    {type.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())} ({projects.length})
                   </h3>
-                  {sidebarData.recent_projects.slice(0, 8).map((project) => (
+                  {projects.slice(0, 5).map((project) => (
                     <ProjectCard key={project.usage_id} project={project} />
                   ))}
+                  {projects.length > 5 && (
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      +{projects.length - 5} more projects
+                    </p>
+                  )}
                 </div>
-              )}
+              ))}
 
               {/* Quick Actions */}
               <div className="space-y-2">
@@ -471,12 +453,12 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
                   className="w-full justify-start" 
                   variant="outline"
                   onClick={() => {
-                    navigate('/ai-studio/long-form-book');
+                    navigate('/text-processing');
                     onClose();
                   }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  New Book Project
+                  New Text Project
                 </Button>
                 <Button 
                   className="w-full justify-start" 
@@ -496,17 +478,17 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
               <Book className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-medium mb-2">No Projects Yet</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                Start generating your first AI book
+                Start generating your first AI project
               </p>
               <Button 
                 size="sm" 
                 onClick={() => {
-                  navigate('/ai-studio/long-form-book');
+                  navigate('/text-processing');
                   onClose();
                 }}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Create Book
+                Create Project
               </Button>
             </div>
           )}
@@ -515,14 +497,14 @@ const ProjectSidebar: React.FC<ProjectSidebarProps> = ({ isOpen, onClose, classN
         {/* Footer Stats */}
         {sidebarData && (
           <div className="p-4 border-t bg-muted/20">
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
-                <CreditCard className="h-3 w-3" />
-                {sidebarData.user_stats.credits_remaining} credits
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+              <div className="text-center">
+                <div className="font-semibold">{sidebarData.summary.total}</div>
+                <div>Total Projects</div>
               </div>
-              <div className="flex items-center gap-1">
-                <Calendar className="h-3 w-3" />
-                {sidebarData.user_stats.this_month_usage} used
+              <div className="text-center">
+                <div className="font-semibold">{sidebarData.summary.completed}</div>
+                <div>Completed</div>
               </div>
             </div>
           </div>
