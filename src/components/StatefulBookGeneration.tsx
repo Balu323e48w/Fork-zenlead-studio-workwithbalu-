@@ -153,7 +153,11 @@ const StatefulBookGeneration: React.FC = () => {
 
   const startNewGenerationStream = async () => {
     try {
-      const token = localStorage.getItem('auth_token');
+      const token = tokenManager.getToken();
+
+      if (!token || !tokenManager.isTokenValid(token)) {
+        throw new Error('No valid authentication token. Please sign in again.');
+      }
 
       const response = await fetch('/api/ai/long-form-book/generate-stream', {
         method: 'POST',
