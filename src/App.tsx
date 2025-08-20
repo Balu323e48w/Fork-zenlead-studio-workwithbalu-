@@ -40,6 +40,7 @@ import BookProjects from "./pages/BookProjects";
 import BookViewer from "./pages/BookViewer";
 import EnhancedBookViewer from "./pages/EnhancedBookViewer";
 import LongFormBookProject from "./components/LongFormBookProject";
+import StatefulBookGeneration from "./components/StatefulBookGeneration";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute, { AuthenticatedRoute, UnauthenticatedRoute } from "./components/ProtectedRoute";
 import AuthMessage from "./components/AuthMessage";
@@ -243,6 +244,14 @@ const App = () => {
                   element={
                     <AuthenticatedRoute>
                       <LongFormBookProject />
+                    </AuthenticatedRoute>
+                  }
+                />
+                <Route
+                  path="/long-form-book/:projectId"
+                  element={
+                    <AuthenticatedRoute>
+                      <StatefulBookGeneration />
                     </AuthenticatedRoute>
                   }
                 />
